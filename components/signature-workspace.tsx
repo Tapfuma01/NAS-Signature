@@ -2,8 +2,10 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { CopySignatureButton } from "@/components/copy-signature-button";
 import { DetailsForm } from "@/components/details-form";
 import { SignaturePreview } from "@/components/signature-preview";
+import { buildPlainTextSignature, buildSignatureHtml } from "@/components/SignatureTemplate";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { emptySignatureForm, type SignatureFormState } from "@/types/signature";
 
@@ -41,6 +43,21 @@ export function SignatureWorkspace() {
         </section>
         <section className="flex-1 lg:min-w-0">
           <SignaturePreview value={form} />
+          <div className="mt-6">
+            <CopySignatureButton
+              disabled={!form.fullName.trim()}
+              plainText={buildPlainTextSignature(form)}
+              buildHtml={() =>
+                buildSignatureHtml({
+                  ...form,
+                  assetsBaseUrl:
+                    typeof window !== "undefined" && window.location.origin
+                      ? window.location.origin
+                      : "",
+                })
+              }
+            />
+          </div>
         </section>
       </main>
     </div>
