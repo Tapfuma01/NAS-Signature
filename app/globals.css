@@ -1,26 +1,170 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:where(.dark, .dark *));
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* C4 Photo Safaris — trimmed design tokens (aligned with c4-photos app/globals.css) */
 
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 40 18% 97%;
+    --foreground: 40 4% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 40 4% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 40 4% 10%;
+    --primary: 32 44% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 36 28% 93%;
+    --secondary-foreground: 40 4% 24%;
+    --muted: 36 22% 91%;
+    --muted-foreground: 38 5% 42%;
+    --accent: 32 44% 60%;
+    --accent-foreground: 40 4% 10%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 34 24% 87%;
+    --input: 34 24% 87%;
+    --ring: 32 44% 60%;
+    --radius: 0.5rem;
+
+    --c4-black: 0 0% 10%;
+    --c4-charcoal: 0 0% 24%;
+    --c4-gold: 32 44% 60%;
+    --c4-gold-light: 32 48% 72%;
+    --c4-gold-dark: 32 44% 48%;
+    --c4-cream: 40 30% 98%;
+    --c4-white: 0 0% 100%;
+    --c4-gray: 40 7% 44%;
+    --c4-gray-dark: 0 0% 20%;
+
+    --shadow-soft: 0px 4px 10px rgba(0, 0, 0, 0.05);
+    --shadow-medium: 0px 4px 16px rgba(0, 0, 0, 0.08);
+
+    --color-primary-gold: #c69c6d;
+    --color-primary-gold-dark: #b07d44;
+  }
+
+  .dark {
+    --background: 0 0% 7%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 11%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 32 44% 60%;
+    --primary-foreground: 0 0% 5%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 68%;
+    --accent: 32 44% 60%;
+    --accent-foreground: 0 0% 5%;
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 32 44% 60%;
+
+    --shadow-soft: 0 4px 20px -4px hsla(0, 0%, 0%, 0.3);
+    --shadow-medium: 0 8px 30px -6px hsla(0, 0%, 0%, 0.4);
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-c4-body), ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-c4-black: hsl(var(--c4-black));
+  --color-c4-charcoal: hsl(var(--c4-charcoal));
+  --color-c4-gold: hsl(var(--c4-gold));
+  --color-c4-gold-light: hsl(var(--c4-gold-light));
+  --color-c4-gold-dark: hsl(var(--c4-gold-dark));
+  --color-c4-cream: hsl(var(--c4-cream));
+  --color-c4-white: hsl(var(--c4-white));
+  --color-c4-gray: hsl(var(--c4-gray));
+  --color-c4-gray-dark: hsl(var(--c4-gray-dark));
+
+  --font-heading: var(--font-c4-heading), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-c4-body), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+}
+
+@layer components {
+  .safari-section-eyebrow {
+    font-family: var(--font-c4-heading), ui-sans-serif, system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    text-transform: uppercase;
+    color: hsl(var(--primary));
+    letter-spacing: 0.2em;
+  }
+
+  @media (min-width: 768px) {
+    .safari-section-eyebrow {
+      font-size: 1rem;
+      line-height: 1.5rem;
+    }
+  }
+
+  .section-subtitle {
+    font-family: var(--font-c4-heading), ui-sans-serif, system-ui, sans-serif;
+    font-weight: 500;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: hsl(var(--primary));
+  }
+
+  @media (min-width: 768px) {
+    .section-subtitle {
+      font-size: 1rem;
+      line-height: 1.5rem;
+    }
+  }
+
+  .gold-line {
+    width: 5rem;
+    height: 0.125rem;
+    border-radius: 9999px;
+    background-color: hsl(var(--primary));
+    box-shadow: 0 0 8px hsl(var(--primary) / 0.3);
+  }
+
+  .shadow-soft {
+    box-shadow: var(--shadow-soft);
+  }
 }
