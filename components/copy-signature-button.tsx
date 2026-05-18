@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-
-type ToastState = { message: string; variant: "success" | "warning" } | null;
+import { useCallback } from "react";
+import { toast } from "sonner";
 
 type Props = {
   disabled?: boolean;
+  /** Button label (default: Copy signature). */
+  buttonLabel?: string;
   /** Called on each copy click so `window.location.origin` is read at gesture time. */
   buildHtml: () => string;
   plainText: string;
@@ -29,25 +30,7 @@ function legacyCopyPlainText(text: string): boolean {
   return ok;
 }
 
-export function CopySignatureButton({ disabled, buildHtml, plainText }: Props) {
-  const [toast, setToast] = useState<ToastState>(null);
-  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const showToast = useCallback((message: string, variant: "success" | "warning") => {
-    if (hideTimer.current) clearTimeout(hideTimer.current);
-    setToast({ message, variant });
-    hideTimer.current = setTimeout(() => {
-      setToast(null);
-      hideTimer.current = null;
-    }, 2600);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (hideTimer.current) clearTimeout(hideTimer.current);
-    };
-  }, []);
-
+export function CopySignatureButton({ disabled, buttonLabel = "Copy signature", buildHtml, plainText }: Props) {
   const handleCopy = useCallback(async () => {
     const html = buildHtml();
 
@@ -69,14 +52,18 @@ export function CopySignatureButton({ disabled, buildHtml, plainText }: Props) {
     };
 
     if (await tryRich()) {
-      showToast("Copied to clipboard", "success");
+      toast.success("Copied to clipboard", {
+        description: "Rich HTML and plain text were copied where supported.",
+      });
       return;
     }
 
     try {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(plainText);
-        showToast("Copied plain text only", "warning");
+        toast.warning("Copied plain text only", {
+          description: "Your browser did not allow rich HTML on the clipboard.",
+        });
         return;
       }
     } catch {
@@ -84,32 +71,24 @@ export function CopySignatureButton({ disabled, buildHtml, plainText }: Props) {
     }
 
     if (legacyCopyPlainText(plainText)) {
-      showToast("Copied plain text only", "warning");
+      toast.warning("Copied plain text only", {
+        description: "Used a fallback copy method.",
+      });
     } else {
-      showToast("Copy failed — try selecting and copying manually", "warning");
+      toast.error("Copy failed", {
+        description: "Try selecting the signature and copying manually.",
+      });
     }
-  }, [buildHtml, plainText, showToast]);
+  }, [buildHtml, plainText]);
 
   return (
-    <div className="relative flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={handleCopy}
-        className="inline-flex h-10 items-center justify-center rounded-md border border-primary bg-primary px-4 text-sm font-semibold uppercase tracking-wide text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
-      >
-        Copy signature
-      </button>
-      <div
-        className={`pointer-events-none min-h-[1.25rem] text-sm transition-opacity duration-300 ${
-          toast ? "opacity-100" : "opacity-0"
-        } ${toast?.variant === "warning" ? "text-amber-600 dark:text-amber-400" : "text-primary"}`}
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
-      >
-        {toast?.message ?? "\u00a0"}
-      </div>
-    </div>
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={handleCopy}
+      className="inline-flex min-h-11 items-center justify-center rounded-md border border-primary bg-primary px-6 text-sm font-semibold uppercase tracking-wide text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+    >
+      {buttonLabel}
+    </button>
   );
 }

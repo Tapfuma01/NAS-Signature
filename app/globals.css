@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -42,6 +44,20 @@
 
     --color-primary-gold: #c69c6d;
     --color-primary-gold-dark: #b07d44;
+
+    --chart-1: 32 44% 60%;
+    --chart-2: 38 5% 42%;
+    --chart-3: 40 4% 24%;
+    --chart-4: 34 24% 70%;
+    --chart-5: 36 22% 85%;
+    --sidebar: 40 18% 97%;
+    --sidebar-foreground: 40 4% 10%;
+    --sidebar-primary: 32 44% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 36 28% 93%;
+    --sidebar-accent-foreground: 40 4% 24%;
+    --sidebar-border: 34 24% 87%;
+    --sidebar-ring: 32 44% 60%;
   }
 
   .dark {
@@ -67,10 +83,25 @@
 
     --shadow-soft: 0 4px 20px -4px hsla(0, 0%, 0%, 0.3);
     --shadow-medium: 0 8px 30px -6px hsla(0, 0%, 0%, 0.4);
+
+    --chart-1: 32 44% 60%;
+    --chart-2: 0 0% 68%;
+    --chart-3: 0 0% 50%;
+    --chart-4: 0 0% 40%;
+    --chart-5: 0 0% 25%;
+    --sidebar: 0 0% 11%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 32 44% 60%;
+    --sidebar-primary-foreground: 0 0% 5%;
+    --sidebar-accent: 0 0% 18%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 32 44% 60%;
   }
 
   * {
     border-color: hsl(var(--border));
+    @apply border-border outline-ring/50;
   }
 
   body {
@@ -79,6 +110,10 @@
     font-family: var(--font-c4-body), ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
   }
 }
 
@@ -119,6 +154,23 @@
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar: hsl(var(--sidebar));
+  --color-chart-5: hsl(var(--chart-5));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-1: hsl(var(--chart-1));
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
 @layer components {

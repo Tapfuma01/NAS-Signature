@@ -1,60 +1,70 @@
 "use client";
 
 import { Mail, MessageCircle, Phone } from "lucide-react";
+import type { OrgBrand } from "@/types/org-brand";
 import type { SignatureFormState } from "@/types/signature";
 
 type Props = {
+  org: OrgBrand;
   value: SignatureFormState;
 };
 
-function line(text: string, placeholder: string) {
+function line(text: string, placeholder: string, activeColor: string, mutedColor: string) {
   const show = text.trim().length > 0;
-  return (
-    <span className={show ? "text-neutral-900" : "text-neutral-400"}>{show ? text : placeholder}</span>
-  );
+  return <span style={{ color: show ? activeColor : mutedColor }}>{show ? text : placeholder}</span>;
 }
 
-export function SignaturePreview({ value }: Props) {
+export function SignaturePreview({ org, value }: Props) {
   const { fullName, jobTitle, phone, email, whatsapp } = value;
+  const { companyName, footerDisplay, accentColor, textColor, mutedColor, borderColor, primaryColor, footerUrl } = org;
 
   return (
-    <div className="flex flex-col gap-4">
-      <p className="safari-section-eyebrow text-xs md:text-sm">Live preview</p>
-      <div
-        className="rounded-xl border p-6 shadow-soft"
-        style={{
-          backgroundColor: "#ffffff",
-          borderColor: "hsl(34 24% 87%)",
-        }}
-      >
-        <div className="mb-4 border-b border-[hsl(34_24%_87%)] pb-4">
-          <p className="font-heading text-sm font-semibold uppercase tracking-[0.2em] text-primary">
-            C4 Photo Safaris
-          </p>
-          <div className="gold-line mt-2" />
-        </div>
-        <div className="space-y-1 font-body text-sm text-neutral-900">
-          <p className="text-base font-semibold text-neutral-900">{line(fullName, "Your name")}</p>
-          <p className="text-sm text-neutral-700">{line(jobTitle, "Your role")}</p>
-        </div>
-        <ul className="mt-4 space-y-2 font-body text-sm text-neutral-800">
-          <li className="flex items-start gap-2">
-            <Phone className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
-            <span>{line(phone, "Phone number")}</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <Mail className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
-            <span>{line(email, "Email address")}</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <MessageCircle className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
-            <span>{line(whatsapp, "WhatsApp link or number")}</span>
-          </li>
-        </ul>
-        <p className="mt-6 border-t border-[hsl(34_24%_87%)] pt-4 text-xs uppercase tracking-[0.15em] text-neutral-500">
-          www.c4photosafaris.com
+    <div
+      className="rounded-xl border p-6 shadow-soft"
+      style={{
+        backgroundColor: "#ffffff",
+        borderColor,
+      }}
+    >
+      <div className="mb-4 border-b pb-4" style={{ borderColor }}>
+        <p
+          className="font-heading text-sm font-semibold uppercase tracking-[0.2em]"
+          style={{ color: accentColor }}
+        >
+          {companyName.trim() || "Company"}
+        </p>
+        <div className="mt-2 h-0.5 w-20 rounded-full" style={{ backgroundColor: primaryColor, boxShadow: `0 0 8px ${primaryColor}55` }} />
+      </div>
+      <div className="space-y-1 font-body text-sm" style={{ color: textColor }}>
+        <p className="text-base font-semibold" style={{ color: textColor }}>
+          {line(fullName, "Your name", textColor, mutedColor)}
+        </p>
+        <p className="text-sm" style={{ color: mutedColor }}>
+          {line(jobTitle, "Your role", textColor, mutedColor)}
         </p>
       </div>
+      <ul className="mt-4 space-y-2 font-body text-sm" style={{ color: textColor }}>
+        <li className="flex items-start gap-2">
+          <Phone className="mt-0.5 h-4 w-4 shrink-0" style={{ color: accentColor }} aria-hidden />
+          <span>{line(phone, "Phone number", textColor, mutedColor)}</span>
+        </li>
+        <li className="flex items-start gap-2">
+          <Mail className="mt-0.5 h-4 w-4 shrink-0" style={{ color: accentColor }} aria-hidden />
+          <span>{line(email, "Email address", textColor, mutedColor)}</span>
+        </li>
+        <li className="flex items-start gap-2">
+          <MessageCircle className="mt-0.5 h-4 w-4 shrink-0" style={{ color: accentColor }} aria-hidden />
+          <span>{line(whatsapp, "WhatsApp link or number", textColor, mutedColor)}</span>
+        </li>
+      </ul>
+      <p
+        className="mt-6 border-t pt-4 text-xs uppercase tracking-[0.15em]"
+        style={{ borderColor, color: mutedColor }}
+      >
+        <a href={footerUrl} className="underline-offset-2 hover:underline" style={{ color: mutedColor }}>
+          {footerDisplay.trim() || footerUrl}
+        </a>
+      </p>
     </div>
   );
 }

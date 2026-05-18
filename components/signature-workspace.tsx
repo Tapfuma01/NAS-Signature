@@ -4,13 +4,19 @@ import Image from "next/image";
 import { useState } from "react";
 import { CopySignatureButton } from "@/components/copy-signature-button";
 import { DetailsForm } from "@/components/details-form";
-import { SignaturePreview } from "@/components/signature-preview";
+import { TemplateWrapper } from "@/components/TemplateWrapper";
 import { buildPlainTextSignature, buildSignatureHtml } from "@/components/SignatureTemplate";
 import { ThemeToggle } from "@/components/theme-toggle";
+import type { OrgBrand } from "@/types/org-brand";
 import { emptySignatureForm, type SignatureFormState } from "@/types/signature";
 
-export function SignatureWorkspace() {
+type Props = {
+  org: OrgBrand;
+};
+
+export function SignatureWorkspace({ org }: Props) {
   const [form, setForm] = useState<SignatureFormState>(emptySignatureForm);
+  const content = { ...form, ...org };
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-background text-foreground">
@@ -42,14 +48,14 @@ export function SignatureWorkspace() {
           <DetailsForm value={form} onChange={setForm} />
         </section>
         <section className="flex-1 lg:min-w-0">
-          <SignaturePreview value={form} />
+          <TemplateWrapper org={org} member={form} />
           <div className="mt-6">
             <CopySignatureButton
               disabled={!form.fullName.trim()}
-              plainText={buildPlainTextSignature(form)}
+              plainText={buildPlainTextSignature(content)}
               buildHtml={() =>
                 buildSignatureHtml({
-                  ...form,
+                  ...content,
                   assetsBaseUrl:
                     typeof window !== "undefined" && window.location.origin
                       ? window.location.origin

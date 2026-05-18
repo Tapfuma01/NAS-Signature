@@ -16,6 +16,15 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Database (Neon)
+
+1. Create a [Neon](https://neon.com) project and copy the connection string.
+2. Copy [.env.example](.env.example) to `.env.local` and set `DATABASE_URL` (and optionally `NEXT_PUBLIC_APP_URL` for correct share links when not using the request host).
+3. Run the SQL in [db/migrations/001_init.sql](db/migrations/001_init.sql) against your database (Neon SQL editor or `psql "$DATABASE_URL" -f db/migrations/001_init.sql`).
+4. Use [http://localhost:3000/admin](http://localhost:3000/admin) to manage team signatures. Public install pages live at `/{slug}`.
+
+`/admin` is not authenticated in this template; add auth (e.g. middleware + session) before exposing it on the public internet.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
