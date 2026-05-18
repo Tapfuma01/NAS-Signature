@@ -2,21 +2,35 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { CopySignatureButton } from "@/components/copy-signature-button";
 import { DetailsForm } from "@/components/details-form";
+import { SignatureCopyPanel } from "@/components/signature-copy-panel";
+import { TemplatePicker } from "@/components/template-picker";
 import { TemplateWrapper } from "@/components/TemplateWrapper";
 import { buildPlainTextSignature, buildSignatureHtml } from "@/components/SignatureTemplate";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { DEFAULT_TEMPLATE_ID } from "@/lib/templates";
 import type { OrgBrand } from "@/types/org-brand";
+import type { TargetPlatform } from "@/types/signature-document";
 import { emptySignatureForm, type SignatureFormState } from "@/types/signature";
 
 type Props = {
   org: OrgBrand;
+  defaultTemplateId?: string;
+  defaultTargetPlatform?: TargetPlatform;
 };
 
-export function SignatureWorkspace({ org }: Props) {
+export function SignatureWorkspace({
+  org,
+  defaultTemplateId = DEFAULT_TEMPLATE_ID,
+  defaultTargetPlatform = "generic",
+}: Props) {
   const [form, setForm] = useState<SignatureFormState>(emptySignatureForm);
+  const [templateId, setTemplateId] = useState(defaultTemplateId);
+  const [targetPlatform, setTargetPlatform] = useState<TargetPlatform>(defaultTargetPlatform);
   const content = { ...form, ...org };
+
+  const assetsBaseUrl =
+    typeof window !== "undefined" && window.location.origin ? window.location.origin : "";
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-background text-foreground">
@@ -44,24 +58,36 @@ export function SignatureWorkspace({ org }: Props) {
       </header>
 
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-5 py-8 md:px-8 lg:flex-row lg:gap-10">
-        <section className="flex-1 lg:max-w-md">
+        <section className="flex flex-1 flex-col gap-6 lg:max-w-md">
           <DetailsForm value={form} onChange={setForm} />
+          <div>
+            <p className="safari-section-eyebrow mb-3 text-xs md:text-sm">Choose a template</p>
+            <TemplatePicker value={templateId} onChange={setTemplateId} org={org} />
+          </div>
         </section>
         <section className="flex-1 lg:min-w-0">
-          <TemplateWrapper org={org} member={form} />
-          <div className="mt-6">
-            <CopySignatureButton
+          <TemplateWrapper
+            org={org}
+            member={form}
+            templateId={templateId}
+            targetPlatform={targetPlatform}
+            assetsBaseUrl={assetsBaseUrl}
+          />
+          <div className="mt-8 border-t border-border pt-8">
+            <SignatureCopyPanel
+              targetPlatform={targetPlatform}
+              onPlatformChange={setTargetPlatform}
               disabled={!form.fullName.trim()}
-              plainText={buildPlainTextSignature(content)}
+              downloadBasename="signature-preview"
               buildHtml={() =>
                 buildSignatureHtml({
                   ...content,
-                  assetsBaseUrl:
-                    typeof window !== "undefined" && window.location.origin
-                      ? window.location.origin
-                      : "",
+                  assetsBaseUrl,
+                  templateId,
+                  renderPlatform: targetPlatform,
                 })
               }
+              plainText={buildPlainTextSignature(content)}
             />
           </div>
         </section>

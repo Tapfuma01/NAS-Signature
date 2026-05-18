@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { updateOrganizationSettings } from "@/app/actions/organization";
 import { createSignature, deleteSignature, updateSignature } from "@/app/actions/signatures";
-import { SignaturePreview } from "@/components/signature-preview";
+import { PlatformSelect } from "@/components/platform-select";
+import { SignatureHtmlPreview } from "@/components/signature-html-preview";
+import { TemplatePicker } from "@/components/template-picker";
+import { DEFAULT_TEMPLATE_ID } from "@/lib/templates";
+import type { TargetPlatform } from "@/types/signature-document";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,7 +49,7 @@ import type { OrganizationSettings } from "@/types/organization-settings";
 import type { OrgBrand } from "@/types/org-brand";
 import type { SignatureRow } from "@/types/signature-row";
 import { cn } from "@/lib/utils";
-import { Pencil, Plus, Search, Trash2, Link2, Send } from "lucide-react";
+import { LayoutTemplate, Pencil, Plus, Search, Trash2, Link2, Send } from "lucide-react";
 import { toast } from "sonner";
 
 type MemberForm = {
@@ -57,6 +61,7 @@ type MemberForm = {
   whatsapp: string;
   avatarUrl: string;
   templateId: string;
+  targetPlatform: TargetPlatform;
 };
 
 const emptyMember: MemberForm = {
@@ -66,7 +71,8 @@ const emptyMember: MemberForm = {
   phone: "",
   whatsapp: "",
   avatarUrl: "",
-  templateId: "default",
+  templateId: DEFAULT_TEMPLATE_ID,
+  targetPlatform: "generic",
 };
 
 type Props = {
@@ -98,6 +104,8 @@ export function AdminCommandCenter({
     textColor: organizationSettings.text_color,
     mutedColor: organizationSettings.muted_color,
     borderColor: organizationSettings.border_color,
+    defaultTemplateId: organizationSettings.default_template_id ?? DEFAULT_TEMPLATE_ID,
+    defaultTargetPlatform: organizationSettings.default_target_platform ?? "generic",
   });
 
   const filtered = useMemo(() => {
@@ -109,7 +117,11 @@ export function AdminCommandCenter({
   }, [initialSignatures, search]);
 
   function openCreate() {
-    setMemberForm(emptyMember);
+    setMemberForm({
+      ...emptyMember,
+      templateId: orgForm.defaultTemplateId,
+      targetPlatform: orgForm.defaultTargetPlatform,
+    });
     setDialogOpen(true);
   }
 
@@ -123,6 +135,7 @@ export function AdminCommandCenter({
       whatsapp: row.whatsapp ?? "",
       avatarUrl: row.avatar_url ?? "",
       templateId: row.template_id,
+      targetPlatform: row.target_platform ?? "generic",
     });
     setDialogOpen(true);
   }
@@ -158,6 +171,7 @@ export function AdminCommandCenter({
           whatsapp: memberForm.whatsapp || null,
           avatarUrl: memberForm.avatarUrl || null,
           templateId: memberForm.templateId,
+          targetPlatform: memberForm.targetPlatform,
         });
         if (!res.ok) toast.error(res.message);
         else {
@@ -174,6 +188,7 @@ export function AdminCommandCenter({
           whatsapp: memberForm.whatsapp || null,
           avatarUrl: memberForm.avatarUrl || null,
           templateId: memberForm.templateId,
+          targetPlatform: memberForm.targetPlatform,
         });
         if (!res.ok) toast.error(res.message);
         else {
@@ -199,6 +214,8 @@ export function AdminCommandCenter({
         textColor: orgForm.textColor,
         mutedColor: orgForm.mutedColor,
         borderColor: orgForm.borderColor,
+        defaultTemplateId: orgForm.defaultTemplateId,
+        defaultTargetPlatform: orgForm.defaultTargetPlatform,
       });
       if (!res.ok) toast.error(res.message);
       else {
@@ -315,6 +332,23 @@ export function AdminCommandCenter({
                 </div>
               </div>
             ))}
+            <div className="grid gap-2 md:col-span-2">
+              <Label>Default template (generator & new signatures)</Label>
+              <TemplatePicker
+                value={orgForm.defaultTemplateId}
+                onChange={(defaultTemplateId) => setOrgForm((s) => ({ ...s, defaultTemplateId }))}
+                disabled={pending}
+                org={orgBrand}
+              />
+            </div>
+            <div className="md:col-span-2">
+              <PlatformSelect
+                value={orgForm.defaultTargetPlatform}
+                onChange={(defaultTargetPlatform) => setOrgForm((s) => ({ ...s, defaultTargetPlatform }))}
+                disabled={pending}
+                id="org-default-platform"
+              />
+            </div>
             <div className="md:col-span-2">
               <Button type="submit" disabled={pending}>
                 Save organization settings
@@ -365,9 +399,15 @@ export function AdminCommandCenter({
                     <TableRow key={row.id}>
                       <TableCell className="align-top">
                         <div className="bg-muted/40 relative h-[140px] w-[220px] overflow-hidden rounded-md border">
-                          <div className="origin-top-left scale-[0.38] p-4" style={{ width: "260%" }}>
-                            <SignaturePreview org={orgBrand} value={signatureRowToFormState(row)} />
-                          </div>
+                          <SignatureHtmlPreview
+                            org={orgBrand}
+                            member={signatureRowToFormState(row)}
+                            templateId={row.template_id}
+                            targetPlatform={row.target_platform}
+                            assetsBaseUrl={publicBaseUrl}
+                            storedRow={row}
+                            compact
+                          />
                         </div>
                       </TableCell>
                       <TableCell className="align-top font-medium">{row.name}</TableCell>
@@ -381,6 +421,13 @@ export function AdminCommandCenter({
                             <Pencil className="size-3.5" />
                             Edit
                           </Button>
+                          <Link
+                            href={`/admin/signatures/${row.id}/edit`}
+                            className={buttonVariants({ variant: "secondary", size: "xs" })}
+                          >
+                            <LayoutTemplate className="size-3.5" />
+                            Design
+                          </Link>
                           <Button
                             type="button"
                             variant="outline"
@@ -449,7 +496,7 @@ export function AdminCommandCenter({
       </Card>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
           <form onSubmit={submitMember}>
             <DialogHeader>
               <DialogTitle>{memberForm.id ? "Edit signature" : "Create signature"}</DialogTitle>
@@ -508,16 +555,19 @@ export function AdminCommandCenter({
                   onChange={(e) => setMemberForm((s) => ({ ...s, avatarUrl: e.target.value }))}
                 />
               </div>
+              <PlatformSelect
+                value={memberForm.targetPlatform}
+                onChange={(targetPlatform) => setMemberForm((s) => ({ ...s, targetPlatform }))}
+                disabled={pending}
+              />
               <div className="grid gap-2">
-                <Label htmlFor="m-template">Template</Label>
-                <select
-                  id="m-template"
-                  className="border-input bg-background h-8 w-full rounded-lg border px-2 text-sm"
+                <Label>Template</Label>
+                <TemplatePicker
                   value={memberForm.templateId}
-                  onChange={(e) => setMemberForm((s) => ({ ...s, templateId: e.target.value }))}
-                >
-                  <option value="default">Default</option>
-                </select>
+                  onChange={(templateId) => setMemberForm((s) => ({ ...s, templateId }))}
+                  disabled={pending}
+                  org={orgBrand}
+                />
               </div>
             </div>
             <DialogFooter>

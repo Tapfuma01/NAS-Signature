@@ -1,6 +1,25 @@
 import { getSql } from "@/lib/db";
+import { parseStoredDocument } from "@/lib/signature-resolve";
 import type { OrganizationSettings } from "@/types/organization-settings";
 import type { SignatureRow } from "@/types/signature-row";
+
+function mapSignatureRow(row: Record<string, unknown>): SignatureRow {
+  return {
+    id: String(row.id),
+    name: String(row.name),
+    job_title: String(row.job_title),
+    email: String(row.email),
+    phone: String(row.phone ?? ""),
+    whatsapp: row.whatsapp != null ? String(row.whatsapp) : null,
+    avatar_url: row.avatar_url != null ? String(row.avatar_url) : null,
+    template_id: String(row.template_id),
+    target_platform: String(row.target_platform ?? "generic") as SignatureRow["target_platform"],
+    document: parseStoredDocument(row.document),
+    slug: String(row.slug),
+    created_at: String(row.created_at),
+    updated_at: String(row.updated_at),
+  };
+}
 
 export async function getOrganizationSettings(): Promise<OrganizationSettings> {
   const sql = getSql();
@@ -15,20 +34,22 @@ export async function getOrganizationSettings(): Promise<OrganizationSettings> {
       text_color,
       muted_color,
       border_color,
+      default_template_id,
+      default_target_platform,
       updated_at::text AS updated_at
     FROM organization_settings
     WHERE id = 1
     LIMIT 1
   `) as OrganizationSettings[];
   if (!rows[0]) {
-    throw new Error("Organization settings row is missing. Run db/migrations/001_init.sql on your Neon database.");
+    throw new Error("Organization settings row is missing. Run db/migrations on your Neon database.");
   }
   return rows[0];
 }
 
 export async function getAllSignatures(): Promise<SignatureRow[]> {
   const sql = getSql();
-  return (await sql`
+  const rows = (await sql`
     SELECT
       id::text AS id,
       name,
@@ -38,12 +59,40 @@ export async function getAllSignatures(): Promise<SignatureRow[]> {
       whatsapp,
       avatar_url,
       template_id,
+      target_platform,
+      document,
       slug,
       created_at::text AS created_at,
       updated_at::text AS updated_at
     FROM signatures
     ORDER BY name ASC
-  `) as SignatureRow[];
+  `) as Record<string, unknown>[];
+  return rows.map(mapSignatureRow);
+}
+
+export async function getSignatureById(id: string): Promise<SignatureRow | null> {
+  const sql = getSql();
+  const rows = (await sql`
+    SELECT
+      id::text AS id,
+      name,
+      job_title,
+      email,
+      phone,
+      whatsapp,
+      avatar_url,
+      template_id,
+      target_platform,
+      document,
+      slug,
+      created_at::text AS created_at,
+      updated_at::text AS updated_at
+    FROM signatures
+    WHERE id = ${id}::uuid
+    LIMIT 1
+  `) as Record<string, unknown>[];
+  if (!rows[0]) return null;
+  return mapSignatureRow(rows[0]);
 }
 
 export async function getSignatureBySlug(
@@ -60,14 +109,16 @@ export async function getSignatureBySlug(
       whatsapp,
       avatar_url,
       template_id,
+      target_platform,
+      document,
       slug,
       created_at::text AS created_at,
       updated_at::text AS updated_at
     FROM signatures
     WHERE slug = ${slug}
     LIMIT 1
-  `) as SignatureRow[];
+  `) as Record<string, unknown>[];
   if (!sigs[0]) return null;
   const organization = await getOrganizationSettings();
-  return { signature: sigs[0], organization };
+  return { signature: mapSignatureRow(sigs[0]), organization };
 }

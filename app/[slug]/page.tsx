@@ -49,7 +49,17 @@ export default async function PublicSignaturePage({
         </Link>
       </div>
       <div className="bg-card shadow-soft mx-auto max-w-xl rounded-2xl border p-6 md:p-8">
-        <PublicSignatureClient org={org} member={member} assetsBaseUrl={assetsBaseUrl} />
+        <PublicSignatureClient
+          org={org}
+          member={member}
+          assetsBaseUrl={assetsBaseUrl}
+          signatureRow={{
+            template_id: data.signature.template_id,
+            document: data.signature.document,
+            target_platform: data.signature.target_platform,
+            slug: data.signature.slug,
+          }}
+        />
       </div>
     </div>
   );

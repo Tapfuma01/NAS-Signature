@@ -1,3 +1,5 @@
+import type { TargetPlatform } from "@/types/signature-document";
+
 export type OrganizationSettings = {
   id: number;
   company_name: string;
@@ -8,5 +10,7 @@ export type OrganizationSettings = {
   text_color: string;
   muted_color: string;
   border_color: string;
+  default_template_id: string;
+  default_target_platform: TargetPlatform;
   updated_at: string;
 };

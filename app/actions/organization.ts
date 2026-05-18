@@ -3,10 +3,16 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getSql } from "@/lib/db";
+import { DEFAULT_TEMPLATE_ID, normalizeTemplateId } from "@/lib/templates";
+import { TARGET_PLATFORMS, type TargetPlatform } from "@/types/signature-document";
 
 const hexColor = z
   .string()
   .regex(/^#[0-9A-Fa-f]{6}$/, "Use a 6-digit hex color like #C69C6D");
+
+const targetPlatformSchema = z.enum(
+  TARGET_PLATFORMS as unknown as [TargetPlatform, ...TargetPlatform[]],
+);
 
 const orgSettingsInput = z.object({
   companyName: z.string().min(1).max(200),
@@ -17,6 +23,8 @@ const orgSettingsInput = z.object({
   textColor: hexColor,
   mutedColor: hexColor,
   borderColor: hexColor,
+  defaultTemplateId: z.string().max(64).optional().default(DEFAULT_TEMPLATE_ID),
+  defaultTargetPlatform: targetPlatformSchema.optional().default("generic"),
 });
 
 export type OrgSettingsActionState = { ok: true } | { ok: false; message: string };
@@ -42,6 +50,8 @@ export async function updateOrganizationSettings(
         text_color = ${v.textColor},
         muted_color = ${v.mutedColor},
         border_color = ${v.borderColor},
+        default_template_id = ${normalizeTemplateId(v.defaultTemplateId)},
+        default_target_platform = ${v.defaultTargetPlatform},
         updated_at = now()
       WHERE id = 1
     `;

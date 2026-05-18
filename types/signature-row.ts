@@ -1,3 +1,5 @@
+import type { SignatureDocument, TargetPlatform } from "@/types/signature-document";
+
 export type SignatureRow = {
   id: string;
   name: string;
@@ -7,6 +9,8 @@ export type SignatureRow = {
   whatsapp: string | null;
   avatar_url: string | null;
   template_id: string;
+  target_platform: TargetPlatform;
+  document: SignatureDocument | null;
   slug: string;
   created_at: string;
   updated_at: string;

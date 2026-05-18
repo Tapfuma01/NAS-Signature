@@ -1,15 +1,25 @@
 "use client";
 
 import { useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { buildOutlookHtmFile, downloadHtmlFile, wrapHtmlForClipboard } from "@/lib/clipboard-html";
+import { getPlatformMeta } from "@/lib/platform-install";
+import type { TargetPlatform } from "@/types/signature-document";
+import { Download } from "lucide-react";
 import { toast } from "sonner";
 
 type Props = {
   disabled?: boolean;
-  /** Button label (default: Copy signature). */
+  targetPlatform?: TargetPlatform;
+  /** Override button label; defaults to platform-specific label. */
   buttonLabel?: string;
-  /** Called on each copy click so `window.location.origin` is read at gesture time. */
+  /** Called on each copy click so HTML is built at gesture time. */
   buildHtml: () => string;
   plainText: string;
+  /** Show .htm download for Outlook desktop (IT / manual install). */
+  showOutlookDownload?: boolean;
+  /** Base filename without extension for .htm download. */
+  downloadBasename?: string;
 };
 
 function legacyCopyPlainText(text: string): boolean {
@@ -30,9 +40,21 @@ function legacyCopyPlainText(text: string): boolean {
   return ok;
 }
 
-export function CopySignatureButton({ disabled, buttonLabel = "Copy signature", buildHtml, plainText }: Props) {
+export function CopySignatureButton({
+  disabled,
+  targetPlatform = "generic",
+  buttonLabel,
+  buildHtml,
+  plainText,
+  showOutlookDownload = true,
+  downloadBasename = "email-signature",
+}: Props) {
+  const meta = getPlatformMeta(targetPlatform);
+  const label = buttonLabel ?? meta.copyButtonLabel;
+
   const handleCopy = useCallback(async () => {
-    const html = buildHtml();
+    const rawHtml = buildHtml();
+    const html = wrapHtmlForClipboard(rawHtml, targetPlatform);
 
     const tryRich = async (): Promise<boolean> => {
       if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
@@ -52,8 +74,8 @@ export function CopySignatureButton({ disabled, buttonLabel = "Copy signature", 
     };
 
     if (await tryRich()) {
-      toast.success("Copied to clipboard", {
-        description: "Rich HTML and plain text were copied where supported.",
+      toast.success(meta.copySuccessTitle, {
+        description: meta.copySuccessDescription,
       });
       return;
     }
@@ -62,7 +84,7 @@ export function CopySignatureButton({ disabled, buttonLabel = "Copy signature", 
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(plainText);
         toast.warning("Copied plain text only", {
-          description: "Your browser did not allow rich HTML on the clipboard.",
+          description: meta.plainTextFallbackHint,
         });
         return;
       }
@@ -72,23 +94,50 @@ export function CopySignatureButton({ disabled, buttonLabel = "Copy signature", 
 
     if (legacyCopyPlainText(plainText)) {
       toast.warning("Copied plain text only", {
-        description: "Used a fallback copy method.",
+        description: meta.plainTextFallbackHint,
       });
     } else {
       toast.error("Copy failed", {
-        description: "Try selecting the signature and copying manually.",
+        description: "Try Download .htm (Outlook) or select the preview and copy manually.",
       });
     }
-  }, [buildHtml, plainText]);
+  }, [buildHtml, plainText, targetPlatform, meta]);
+
+  const handleDownloadHtm = useCallback(() => {
+    const rawHtml = buildHtml();
+    const file = buildOutlookHtmFile(rawHtml, downloadBasename);
+    downloadHtmlFile(file, `${downloadBasename.replace(/[^\w.-]+/g, "-")}.htm`);
+    toast.success("Downloaded signature .htm", {
+      description: "Open in Word or paste into Outlook signature settings.",
+    });
+  }, [buildHtml, downloadBasename]);
+
+  const showDownload =
+    showOutlookDownload &&
+    (targetPlatform === "outlook_desktop" || targetPlatform === "microsoft_365");
 
   return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={handleCopy}
-      className="inline-flex min-h-11 items-center justify-center rounded-md border border-primary bg-primary px-6 text-sm font-semibold uppercase tracking-wide text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
-    >
-      {buttonLabel}
-    </button>
+    <div className="flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={handleCopy}
+        className="inline-flex min-h-11 items-center justify-center rounded-md border border-primary bg-primary px-6 text-sm font-semibold uppercase tracking-wide text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+      >
+        {label}
+      </button>
+      {showDownload ? (
+        <Button
+          type="button"
+          variant="outline"
+          disabled={disabled}
+          className="min-h-11"
+          onClick={handleDownloadHtm}
+        >
+          <Download className="size-4" />
+          Download .htm
+        </Button>
+      ) : null}
+    </div>
   );
 }
