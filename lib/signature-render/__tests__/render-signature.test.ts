@@ -109,7 +109,7 @@ describe("renderSignatureDocument", () => {
     const profile = getRenderProfile("outlook_desktop");
     expect(profile.bodyFont).toBe("Arial, Helvetica, sans-serif");
     expect(profile.headingFont).not.toContain("Montserrat");
-    expect(profile.footerSeparator).toBe("table-row");
+    expect(profile.strictOutlook).toBe(true);
   });
 
   it("each catalog template has a layout style config", () => {

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useTransition } from "react";
 import { adminLogin } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
@@ -32,7 +33,16 @@ export function AdminLoginForm({ next }: Props) {
   }
 
   return (
-    <Card className="w-full max-w-sm shadow-md">
+    <div className="flex w-full max-w-sm flex-col items-center gap-6">
+      <Image
+        src="/c4-logo.png"
+        alt="C4 Photo Safaris"
+        width={280}
+        height={72}
+        className="h-auto w-full max-w-[280px] object-contain"
+        priority
+      />
+      <Card className="w-full shadow-md">
       <CardHeader>
         <CardTitle>Admin sign in</CardTitle>
         <CardDescription>Enter the admin password configured for this deployment.</CardDescription>
@@ -56,5 +66,6 @@ export function AdminLoginForm({ next }: Props) {
         </form>
       </CardContent>
     </Card>
+    </div>
   );
 }

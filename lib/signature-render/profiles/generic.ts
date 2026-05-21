@@ -7,6 +7,5 @@ export const genericProfile: RenderProfile = {
   bodyFont: BODY_FONT_SAFE,
   headingFont: HEADING_FONT_LEGACY,
   strictOutlook: false,
-  footerSeparator: "border-top",
   contactLabelWidth: 88,
 };

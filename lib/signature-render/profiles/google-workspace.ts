@@ -7,6 +7,5 @@ export const googleWorkspaceProfile: RenderProfile = {
   bodyFont: BODY_FONT_SAFE,
   headingFont: BODY_FONT_SAFE,
   strictOutlook: false,
-  footerSeparator: "border-top",
   contactLabelWidth: 88,
 };

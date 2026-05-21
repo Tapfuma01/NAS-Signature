@@ -278,7 +278,6 @@ export function renderFooterRow(
   const safeFooterHref = escapeHtml(block.url);
   const safeFooterLabel = escapeHtml(block.label.trim() || block.url);
   const linkColor = escapeHtml(blockStyle?.color ?? theme.mutedColor);
-  const borderColor = escapeHtml(blockStyle?.borderColor ?? theme.borderColor);
   const isC4 = layout.footerMode === "c4-uppercase";
   const typography = isC4
     ? `font-family:${profile.bodyFont};font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:${linkColor};`
@@ -292,22 +291,7 @@ export function renderFooterRow(
   );
   const linkStyle = `color:${linkColor};text-decoration:none;`;
 
-  if (profile.footerSeparator === "table-row") {
-    const outerStyle = applyBlockStyle("padding:14px 0 0 0;", blockStyle);
-    const inner = `<tr>
-      <td style="${outerStyle}">
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
-          <tr><td height="1" bgcolor="${borderColor}" style="font-size:0;line-height:0;background-color:${borderColor};">&nbsp;</td></tr>
-          <tr><td style="${cellStyle}">
-            <a href="${safeFooterHref}" style="${linkStyle}">${safeFooterLabel}</a>
-          </td></tr>
-        </table>
-      </td>
-    </tr>`;
-    return wrapRowWithBlockMargin(inner, blockStyle);
-  }
-
-  const inner = `<tr><td style="${cellStyle}border-top:1px solid ${borderColor};">
+  const inner = `<tr><td style="${cellStyle}">
         <a href="${safeFooterHref}" style="${linkStyle}">${safeFooterLabel}</a>
       </td></tr>`;
   return wrapRowWithBlockMargin(inner, blockStyle);

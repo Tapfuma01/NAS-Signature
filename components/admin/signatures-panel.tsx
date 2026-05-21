@@ -2,18 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo, useState, useTransition } from "react";
-import {
-  bulkDeleteSignatures,
-  bulkUpdateTemplate,
-  createSignature,
-  deleteSignature,
-  updateSignature,
-} from "@/app/actions/signatures";
-import {
-  MemberFormDialog,
-  emptyMemberForm,
-  type MemberForm,
-} from "@/components/admin/member-form-dialog";
+import { bulkDeleteSignatures, bulkUpdateTemplate, deleteSignature } from "@/app/actions/signatures";
 import { SignaturePreviewSheet } from "@/components/admin/signature-preview-sheet";
 import { SignatureRowMenu } from "@/components/admin/signature-row-menu";
 import { TemplatePicker } from "@/components/template-picker";
@@ -95,8 +84,6 @@ export function SignaturesPanel({
   const searchParams = useSearchParams();
   const [pending, startTransition] = useTransition();
   const [localSearch, setLocalSearch] = useState(searchQuery);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [memberForm, setMemberForm] = useState<MemberForm>(emptyMemberForm);
   const [deleteTarget, setDeleteTarget] = useState<SignatureRow | null>(null);
   const [previewRow, setPreviewRow] = useState<SignatureRow | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -132,26 +119,11 @@ export function SignaturesPanel({
   );
 
   function openCreate() {
-    setMemberForm({
-      ...emptyMemberForm,
-      templateId: organizationDefaults.templateId,
-    });
-    setDialogOpen(true);
+    router.push("/admin/signatures/new");
   }
 
   function openEdit(row: SignatureRow) {
-    setMemberForm({
-      id: row.id,
-      name: row.name,
-      jobTitle: row.job_title,
-      email: row.email,
-      phone: row.phone,
-      whatsapp: row.whatsapp ?? "",
-      avatarUrl: row.avatar_url ?? "",
-      templateId: row.template_id,
-      targetPlatform: row.target_platform ?? "generic",
-    });
-    setDialogOpen(true);
+    router.push(`/admin/signatures/${row.id}`);
   }
 
   async function copyPublicLink(slug: string) {
@@ -187,50 +159,6 @@ export function SignaturesPanel({
         return next;
       });
     }
-  }
-
-  async function submitMember(e: React.FormEvent) {
-    e.preventDefault();
-    startTransition(async () => {
-      if (memberForm.id) {
-        const res = await updateSignature({
-          id: memberForm.id,
-          name: memberForm.name,
-          jobTitle: memberForm.jobTitle,
-          email: memberForm.email,
-          phone: memberForm.phone,
-          whatsapp: memberForm.whatsapp || null,
-          avatarUrl: memberForm.avatarUrl || null,
-          templateId: memberForm.templateId,
-          targetPlatform: memberForm.targetPlatform,
-        });
-        if (!res.ok) toast.error(res.message);
-        else {
-          toast.success("Signature updated");
-          setDialogOpen(false);
-          router.refresh();
-        }
-      } else {
-        const res = await createSignature({
-          name: memberForm.name,
-          jobTitle: memberForm.jobTitle,
-          email: memberForm.email,
-          phone: memberForm.phone,
-          whatsapp: memberForm.whatsapp || null,
-          avatarUrl: memberForm.avatarUrl || null,
-          templateId: memberForm.templateId,
-          targetPlatform: memberForm.targetPlatform,
-        });
-        if (!res.ok) toast.error(res.message);
-        else {
-          toast.success("Signature created", {
-            description: res.slug ? `Public page: /${res.slug}` : undefined,
-          });
-          setDialogOpen(false);
-          router.refresh();
-        }
-      }
-    });
   }
 
   async function confirmDelete() {
@@ -525,17 +453,6 @@ export function SignaturesPanel({
           ) : null}
         </CardContent>
       </Card>
-
-      <MemberFormDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        form={memberForm}
-        onChange={setMemberForm}
-        onSubmit={submitMember}
-        pending={pending}
-        org={orgBrand}
-        readOnly={readOnly}
-      />
 
       <SignaturePreviewSheet
         row={previewRow}

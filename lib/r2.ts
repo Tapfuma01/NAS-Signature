@@ -67,3 +67,30 @@ export async function uploadOrganizationLogoToR2(
 
   return `${config.publicUrl}/${key}`;
 }
+
+export async function uploadPublicAssetToR2(
+  body: Buffer,
+  contentType: string,
+  ext: string,
+  prefix = "assets",
+): Promise<string> {
+  const config = getR2Config();
+  if (!config) {
+    throw new Error("Cloudflare R2 is not configured");
+  }
+
+  const key = `${prefix}/${Date.now()}-${Math.random().toString(36).slice(2, 9)}.${ext}`;
+  const client = createR2Client(config);
+
+  await client.send(
+    new PutObjectCommand({
+      Bucket: config.bucketName,
+      Key: key,
+      Body: body,
+      ContentType: contentType,
+      CacheControl: "public, max-age=31536000, immutable",
+    }),
+  );
+
+  return `${config.publicUrl}/${key}`;
+}

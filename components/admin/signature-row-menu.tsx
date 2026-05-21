@@ -74,7 +74,7 @@ export function SignatureRowMenu({
           {canEdit ? (
             <DropdownMenuItem onClick={onEdit}>
               <Pencil className="size-4" />
-              Edit details
+              Edit member
             </DropdownMenuItem>
           ) : null}
           {canDesign ? (

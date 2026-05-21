@@ -7,6 +7,5 @@ export const outlookDesktopProfile: RenderProfile = {
   bodyFont: BODY_FONT_SAFE,
   headingFont: BODY_FONT_SAFE,
   strictOutlook: true,
-  footerSeparator: "table-row",
   contactLabelWidth: 90,
 };

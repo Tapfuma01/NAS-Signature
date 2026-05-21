@@ -5,9 +5,10 @@ import type { SignatureFormState } from "@/types/signature";
 type Props = {
   value: SignatureFormState;
   onChange: (next: SignatureFormState) => void;
+  disabled?: boolean;
 };
 
-export function DetailsForm({ value, onChange }: Props) {
+export function DetailsForm({ value, onChange, disabled }: Props) {
   const patch = (partial: Partial<SignatureFormState>) => {
     onChange({ ...value, ...partial });
   };
@@ -23,6 +24,7 @@ export function DetailsForm({ value, onChange }: Props) {
             autoComplete="name"
             placeholder="Jane Doe"
             value={value.fullName}
+            disabled={disabled}
             onChange={(e) => patch({ fullName: e.target.value })}
           />
         </label>
@@ -33,6 +35,7 @@ export function DetailsForm({ value, onChange }: Props) {
             autoComplete="organization-title"
             placeholder="Photo Safari Specialist"
             value={value.jobTitle}
+            disabled={disabled}
             onChange={(e) => patch({ jobTitle: e.target.value })}
           />
         </label>
@@ -44,6 +47,7 @@ export function DetailsForm({ value, onChange }: Props) {
             autoComplete="tel"
             placeholder="+27 12 345 6789"
             value={value.phone}
+            disabled={disabled}
             onChange={(e) => patch({ phone: e.target.value })}
           />
         </label>
@@ -55,6 +59,7 @@ export function DetailsForm({ value, onChange }: Props) {
             autoComplete="email"
             placeholder="you@c4photosafaris.com"
             value={value.email}
+            disabled={disabled}
             onChange={(e) => patch({ email: e.target.value })}
           />
         </label>
@@ -65,6 +70,7 @@ export function DetailsForm({ value, onChange }: Props) {
             autoComplete="tel"
             placeholder="https://wa.me/27123456789"
             value={value.whatsapp}
+            disabled={disabled}
             onChange={(e) => patch({ whatsapp: e.target.value })}
           />
         </label>

@@ -26,9 +26,9 @@ export const metadata: Metadata = {
   },
   description: "Internal email signature generator for C4 Photo Safaris.",
   icons: {
-    icon: [{ url: "/c4-favicon.png", type: "image/png" }],
-    shortcut: "/c4-favicon.png",
-    apple: "/c4-favicon.png",
+    icon: [{ url: "/c4-favicon.jpg", type: "image/jpeg" }],
+    shortcut: "/c4-favicon.jpg",
+    apple: "/c4-favicon.jpg",
   },
 };
 

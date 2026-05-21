@@ -3,7 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { requireOrgSettingsMutation } from "@/lib/auth/require-action";
 import { getSql } from "@/lib/db";
-import { isR2Configured, uploadOrganizationLogoToR2, validateLogoFile } from "@/lib/r2";
+import { requireSignatureMutation } from "@/lib/auth/require-action";
+import {
+  isR2Configured,
+  uploadOrganizationLogoToR2,
+  uploadPublicAssetToR2,
+  validateLogoFile,
+} from "@/lib/r2";
 
 export type MediaActionState =
   | { ok: true; url: string }
@@ -69,4 +75,36 @@ export async function clearOrganizationLogo(): Promise<MediaActionState> {
   revalidatePath("/", "layout");
 
   return { ok: true, url: "" };
+}
+
+/** Upload an image for member avatars or other assets; returns public URL only (no DB write). */
+export async function uploadPublicAsset(formData: FormData): Promise<MediaActionState> {
+  const auth = await requireSignatureMutation();
+  if (!auth.ok) return { ok: false, message: auth.message };
+
+  if (!isR2Configured()) {
+    return {
+      ok: false,
+      message: "Upload is not configured. Set CLOUDFLARE_R2_* variables or paste a public HTTPS URL.",
+    };
+  }
+
+  const file = formData.get("file");
+  if (!(file instanceof File)) {
+    return { ok: false, message: "No file selected" };
+  }
+
+  const validated = validateLogoFile(file);
+  if (!validated.ok) {
+    return { ok: false, message: validated.message };
+  }
+
+  try {
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const url = await uploadPublicAssetToR2(buffer, file.type, validated.ext, "avatars");
+    return { ok: true, url };
+  } catch (err) {
+    console.error("uploadPublicAsset", err);
+    return { ok: false, message: "Upload failed. Check R2 credentials and bucket public access." };
+  }
 }

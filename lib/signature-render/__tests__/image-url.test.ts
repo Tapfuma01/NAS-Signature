@@ -7,8 +7,8 @@ import {
 
 describe("image-url", () => {
   it("upgrades http to https and resolves relative paths", () => {
-    expect(toAbsoluteHttpsImageUrl("/c4-favicon.png", "https://signatures.example.com")).toBe(
-      "https://signatures.example.com/c4-favicon.png",
+    expect(toAbsoluteHttpsImageUrl("/c4-favicon.jpg", "https://signatures.example.com")).toBe(
+      "https://signatures.example.com/c4-favicon.jpg",
     );
     expect(toAbsoluteHttpsImageUrl("http://cdn.example.com/logo.png", "")).toBe(
       "https://cdn.example.com/logo.png",
@@ -16,7 +16,7 @@ describe("image-url", () => {
   });
 
   it("detects localhost URLs", () => {
-    expect(isLocalhostImageUrl("http://localhost:3000/c4-favicon.png")).toBe(true);
+    expect(isLocalhostImageUrl("http://localhost:3000/c4-favicon.jpg")).toBe(true);
     expect(isLocalhostImageUrl("https://signatures.example.com/logo.png")).toBe(false);
   });
 

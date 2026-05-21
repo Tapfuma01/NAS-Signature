@@ -7,6 +7,5 @@ export const microsoft365Profile: RenderProfile = {
   bodyFont: BODY_FONT_SAFE,
   headingFont: BODY_FONT_SAFE,
   strictOutlook: true,
-  footerSeparator: "border-top",
   contactLabelWidth: 88,
 };

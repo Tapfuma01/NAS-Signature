@@ -39,7 +39,7 @@ export function resolveLogoUrl(
       ? process.env.NEXT_PUBLIC_SIGNATURE_LOGO_URL.trim()
       : "";
   const explicitLogo = (explicitSrc?.trim() || envLogo || orgLogoUrl || "").trim();
-  const faviconPath = "/c4-favicon.png";
+  const faviconPath = "/c4-favicon.jpg";
   const rawResolved = explicitLogo || (origin ? `${origin}${faviconPath}` : "");
   const resolvedLogo = rawResolved ? toAbsoluteHttpsImageUrl(rawResolved, origin) : "";
   const hasCustomLogo = Boolean(explicitLogo);

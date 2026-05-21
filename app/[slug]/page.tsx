@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PublicSignatureClient } from "@/components/public-signature-client";
 import { getPublicAppUrl } from "@/lib/app-url";
@@ -48,9 +47,6 @@ export default async function PublicSignaturePage({
         <p className="text-muted-foreground text-sm">
           Your email signature is ready. Copy it below — no login required.
         </p>
-        <Link href="/" className="text-primary text-sm font-medium hover:underline">
-          Back to generator
-        </Link>
       </div>
       <div className="bg-card shadow-soft mx-auto max-w-xl rounded-2xl border p-6 md:p-8">
         <PublicSignatureClient

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -71,6 +72,32 @@ function Breadcrumb({ pathname }: { pathname: string }) {
       </nav>
     );
   }
+
+  if (pathname === "/admin/signatures/new") {
+    return (
+      <nav className="text-muted-foreground mb-4 flex items-center gap-2 text-sm">
+        <Link href="/admin" className="hover:text-foreground">
+          Signatures
+        </Link>
+        <span aria-hidden>/</span>
+        <span className="text-foreground font-medium">Create signature</span>
+      </nav>
+    );
+  }
+
+  const memberMatch = pathname.match(/^\/admin\/signatures\/([^/]+)$/);
+  if (memberMatch && memberMatch[1] !== "new") {
+    return (
+      <nav className="text-muted-foreground mb-4 flex items-center gap-2 text-sm">
+        <Link href="/admin" className="hover:text-foreground">
+          Signatures
+        </Link>
+        <span aria-hidden>/</span>
+        <span className="text-foreground font-medium">Edit member</span>
+      </nav>
+    );
+  }
+
   return null;
 }
 
@@ -88,9 +115,14 @@ export function AdminShell({ children, role, authEnabled }: Props) {
       <Sidebar collapsible="icon" className="border-sidebar-border">
         <SidebarHeader className="border-sidebar-border border-b px-3 py-4">
           <div className="flex items-center gap-2 px-1">
-            <div className="bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-md">
-              <LayoutTemplate className="size-4" />
-            </div>
+            <Image
+              src="/c4-favicon.jpg"
+              alt="C4 Photo Safaris"
+              width={32}
+              height={32}
+              className="size-8 shrink-0 rounded-md object-contain"
+              priority
+            />
             <div className="flex min-w-0 flex-col group-data-[collapsible=icon]:hidden">
               <span className="truncate text-sm font-semibold">C4 Signatures</span>
               <span className="text-muted-foreground truncate text-xs">Admin</span>
