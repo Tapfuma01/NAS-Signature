@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { documentsEqual } from "@/lib/document-editor/document-equality";
 import type { SignatureDocument } from "@/types/signature-document";
 
 const MAX_HISTORY = 50;
@@ -22,7 +23,7 @@ export function useDocumentHistory(initial: SignatureDocument) {
     (next: SignatureDocument | ((prev: SignatureDocument) => SignatureDocument)) => {
       setState((s) => {
         const resolved = typeof next === "function" ? next(s.present) : next;
-        if (JSON.stringify(resolved) === JSON.stringify(s.present)) return s;
+        if (documentsEqual(resolved, s.present)) return s;
         return {
           past: [...s.past.slice(-(MAX_HISTORY - 1)), s.present],
           present: resolved,

@@ -2,27 +2,9 @@ import "server-only";
 
 import { timingSafeEqual } from "crypto";
 import { getSql } from "@/lib/db";
+import { mapSignatureRow } from "@/lib/data/signature-row-mapper";
 import { getPublicAppUrl } from "@/lib/app-url";
-import { parseStoredDocument } from "@/lib/signature-resolve";
 import type { SignatureRow } from "@/types/signature-row";
-
-function mapSignatureRow(row: Record<string, unknown>): SignatureRow {
-  return {
-    id: String(row.id),
-    name: String(row.name),
-    job_title: String(row.job_title),
-    email: String(row.email),
-    phone: String(row.phone ?? ""),
-    whatsapp: row.whatsapp != null ? String(row.whatsapp) : null,
-    avatar_url: row.avatar_url != null ? String(row.avatar_url) : null,
-    template_id: String(row.template_id),
-    target_platform: String(row.target_platform ?? "generic") as SignatureRow["target_platform"],
-    document: parseStoredDocument(row.document),
-    slug: String(row.slug),
-    created_at: String(row.created_at),
-    updated_at: String(row.updated_at),
-  };
-}
 
 function tokensMatch(stored: string, provided: string): boolean {
   const a = Buffer.from(stored, "utf8");

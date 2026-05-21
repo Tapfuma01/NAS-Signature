@@ -1,45 +1,106 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NAS Signature
 
-## Getting Started
+A production-ready email signature platform for teams. Admins manage organization branding, signature templates, and team members; members install signatures via a public link without logging in.
 
-First, run the development server:
+Built with **Next.js** (App Router), **Neon Postgres**, and optional **Cloudflare R2** for logo uploads.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Features
+
+| Area | Description |
+|------|-------------|
+| **Admin dashboard** | Manage signatures, templates, and organization settings |
+| **Template editor** | Visual block editor with live preview and undo/redo |
+| **Public install pages** | Per-member URLs at `/{slug}` for copy-to-clipboard install |
+| **Token-based member edit** | Members update contact details via a secure link (no admin account) |
+| **Platform profiles** | Outlook, Microsoft 365, Google Workspace, Apple Mail, and generic HTML |
+| **Email invites** | Optional Brevo integration to send install links to members |
+
+## Architecture (overview)
+
+```
+app/                 Next.js routes (admin, public slug pages, sign-in)
+app/actions/         Server Actions (auth, signatures, templates, media)
+components/          UI and editor (client islands where interactivity is needed)
+lib/                 Data access, rendering, auth, templates, storage
+db/migrations/       Postgres schema (run in order on Neon)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Server-first**: Pages and mutations run on the server; client components are limited to forms, the editor, and previews.
+- **Templates are global**: Layout lives in `signature_templates`; member rows store contact fields and template assignment only.
+- **Rendering**: Signatures compile from a block document model to email-safe HTML per target platform.
 
-## Database (Neon)
+## Requirements
 
-1. Create a [Neon](https://neon.com) project and copy the connection string.
-2. Copy [.env.example](.env.example) to `.env.local` and set `DATABASE_URL` (and optionally `NEXT_PUBLIC_APP_URL` for correct share links when not using the request host).
-3. Run the SQL in [db/migrations/001_init.sql](db/migrations/001_init.sql) against your database (Neon SQL editor or `psql "$DATABASE_URL" -f db/migrations/001_init.sql`).
-4. Use [http://localhost:3000/admin](http://localhost:3000/admin) to manage team signatures. Public install pages live at `/{slug}`.
+- Node.js 20+
+- A [Neon](https://neon.com) Postgres database
+- For production: `ADMIN_SECRET`, `DATABASE_URL`, `NEXT_PUBLIC_APP_URL`
 
-`/admin` is not authenticated in this template; add auth (e.g. middleware + session) before exposing it on the public internet.
+Optional: Cloudflare R2 (logo/avatar uploads), Brevo (invite emails).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **Clone and install**
 
-## Learn More
+   ```bash
+   npm install
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+2. **Environment**
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   Copy `.env.example` to `.env.local` and fill in values. See the example file for variable names and short descriptions.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. **Database**
 
-## Deploy on Vercel
+   Run migrations in order against your Neon database:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   ```bash
+   psql "$DATABASE_URL" -f db/migrations/001_init.sql
+   psql "$DATABASE_URL" -f db/migrations/002_document_templates.sql
+   psql "$DATABASE_URL" -f db/migrations/003_global_templates.sql
+   psql "$DATABASE_URL" -f db/migrations/004_signature_edit_token.sql
+   psql "$DATABASE_URL" -f db/migrations/005_performance_indexes.sql
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+4. **Development**
+
+   ```bash
+   npm run dev
+   ```
+
+   - Sign in: [http://localhost:3000](http://localhost:3000) (when `ADMIN_SECRET` is set)
+   - Admin: [http://localhost:3000/admin](http://localhost:3000/admin)
+   - Public signature example: `http://localhost:3000/{slug}`
+
+## Scripts
+
+| Command | Purpose |
+|---------|---------|
+| `npm run dev` | Local development server |
+| `npm run build` | Production build |
+| `npm run start` | Run production server |
+| `npm test` | Unit tests (Vitest) |
+| `npm run lint` | ESLint |
+
+## Deployment
+
+Deploy to [Vercel](https://vercel.com) or any Node.js host that supports Next.js 16.
+
+1. Set environment variables in the hosting dashboard (mirror `.env.example`).
+2. Run database migrations on your production Neon branch.
+3. Set `NEXT_PUBLIC_APP_URL` to your public origin so signature images and share links resolve correctly in email clients.
+4. Set a strong `ADMIN_SECRET` in production (auth is required when `NODE_ENV=production`).
+
+For high-traffic production, add edge rate limiting (e.g. Vercel Firewall) on `/` (login) and public save actions.
+
+## Security notes (high level)
+
+- Admin routes are protected by signed session cookies and role checks.
+- Public member edits require a per-signature secret token in the URL.
+- HTML output is escaped at render time; previews use sandboxed iframes.
+- Security headers are applied on all responses.
+
+Do not commit `.env.local` or secrets to version control.
+
+## License
+
+Private — C4 Photo Safaris / internal use unless otherwise specified.

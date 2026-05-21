@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 import { renderSignatureDocument } from "@/lib/signature-render/render-document";
 import { resolveSignatureDocument } from "@/lib/signature-resolve";
 import type { OrgBrand } from "@/types/org-brand";
@@ -24,7 +24,7 @@ type Props = {
   compact?: boolean;
 };
 
-export function SignatureHtmlPreview({
+function SignatureHtmlPreviewInner({
   org,
   member,
   templateId,
@@ -91,3 +91,5 @@ export function SignatureHtmlPreview({
     </div>
   );
 }
+
+export const SignatureHtmlPreview = memo(SignatureHtmlPreviewInner);

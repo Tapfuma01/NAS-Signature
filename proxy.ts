@@ -5,20 +5,28 @@ import {
   verifySessionToken,
 } from "@/lib/auth/session-token";
 import { canAccessOrgSettings } from "@/lib/auth/roles";
+import { SECURITY_HEADERS } from "@/lib/security/headers";
+
+function withSecurityHeaders(response: NextResponse): NextResponse {
+  for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+    response.headers.set(key, value);
+  }
+  return response;
+}
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (!pathname.startsWith("/admin")) {
-    return NextResponse.next();
+    return withSecurityHeaders(NextResponse.next());
   }
 
   if (pathname.startsWith("/admin/login")) {
-    return NextResponse.next();
+    return withSecurityHeaders(NextResponse.next());
   }
 
   if (!isAdminAuthEnabled()) {
-    return NextResponse.next();
+    return withSecurityHeaders(NextResponse.next());
   }
 
   const token = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
@@ -27,14 +35,14 @@ export function proxy(request: NextRequest) {
   if (!session) {
     const login = new URL("/", request.url);
     login.searchParams.set("next", pathname);
-    return NextResponse.redirect(login);
+    return withSecurityHeaders(NextResponse.redirect(login));
   }
 
   if (pathname.startsWith("/admin/settings") && !canAccessOrgSettings(session.role)) {
-    return NextResponse.redirect(new URL("/admin/forbidden", request.url));
+    return withSecurityHeaders(NextResponse.redirect(new URL("/admin/forbidden", request.url)));
   }
 
-  return NextResponse.next();
+  return withSecurityHeaders(NextResponse.next());
 }
 
 export const config = {

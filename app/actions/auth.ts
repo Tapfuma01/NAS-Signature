@@ -1,6 +1,6 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { parseAdminRole } from "@/lib/auth/roles";
@@ -10,6 +10,8 @@ import {
   sessionCookieOptions,
   ADMIN_SESSION_COOKIE,
 } from "@/lib/auth/session-token";
+import { checkRateLimit, rateLimitKey } from "@/lib/security/rate-limit";
+import { secureCompare } from "@/lib/security/secure-compare";
 
 const loginInput = z.object({
   secret: z.string().min(1),
@@ -29,7 +31,23 @@ export async function adminLogin(input: z.infer<typeof loginInput>): Promise<Aut
     return { ok: false, message: "Admin login is not configured (set ADMIN_SECRET)" };
   }
 
-  if (parsed.data.secret !== configured) {
+  const hdrs = await headers();
+  const clientIp =
+    hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    hdrs.get("x-real-ip")?.trim() ||
+    "unknown";
+  const limit = checkRateLimit(rateLimitKey("admin-login", clientIp), {
+    maxAttempts: 10,
+    windowMs: 15 * 60 * 1000,
+  });
+  if (!limit.allowed) {
+    return {
+      ok: false,
+      message: `Too many attempts. Try again in ${limit.retryAfterSec} seconds.`,
+    };
+  }
+
+  if (!secureCompare(parsed.data.secret, configured)) {
     return { ok: false, message: "Invalid password" };
   }
 

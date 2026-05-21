@@ -1,9 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { z } from "zod";
 import { getSql } from "@/lib/db";
 import { verifyEditToken } from "@/lib/signatures/public-edit";
+import { checkRateLimit, rateLimitKey } from "@/lib/security/rate-limit";
 
 const publicFieldsSchema = z.object({
   slug: z.string().min(1).max(120),
@@ -30,6 +32,23 @@ export async function updateMemberDetailsPublic(
   }
 
   const v = parsed.data;
+
+  const hdrs = await headers();
+  const clientIp =
+    hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    hdrs.get("x-real-ip")?.trim() ||
+    "unknown";
+  const limit = checkRateLimit(rateLimitKey("public-edit", `${clientIp}:${v.slug}`), {
+    maxAttempts: 30,
+    windowMs: 15 * 60 * 1000,
+  });
+  if (!limit.allowed) {
+    return {
+      ok: false,
+      message: `Too many save attempts. Try again in ${limit.retryAfterSec} seconds.`,
+    };
+  }
+
   const verified = await verifyEditToken(v.slug, v.token);
   if (!verified) {
     return { ok: false, message: "Invalid or expired edit link" };
@@ -37,7 +56,7 @@ export async function updateMemberDetailsPublic(
 
   const sql = getSql();
   try {
-    await sql`
+    const updated = (await sql`
       UPDATE signatures
       SET
         name = ${v.fullName},
@@ -49,7 +68,11 @@ export async function updateMemberDetailsPublic(
         updated_at = now()
       WHERE slug = ${v.slug}
         AND edit_token = ${v.token.trim()}
-    `;
+      RETURNING id
+    `) as { id: string }[];
+    if (updated.length === 0) {
+      return { ok: false, message: "Invalid or expired edit link" };
+    }
   } catch {
     return { ok: false, message: "Failed to save your details" };
   }

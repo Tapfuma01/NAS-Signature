@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { TemplateEditor } from "@/components/editor/template-editor";
+import { TemplateEditorLoader } from "@/components/editor/template-editor-loader";
 import { getPublicAppUrl } from "@/lib/app-url";
 import { getOrganizationSettings } from "@/lib/data";
 import { getTemplateByIdAsync } from "@/lib/templates/store";
@@ -29,7 +29,7 @@ export default async function EditTemplatePage({
   const org = organizationRowToOrgBrand(organization);
 
   return (
-    <TemplateEditor
+    <TemplateEditorLoader
       template={template}
       org={org}
       assetsBaseUrl={assetsBaseUrl}

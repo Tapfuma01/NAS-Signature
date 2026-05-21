@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useDeferredValue, useEffect, useState, useTransition } from "react";
 import { saveTemplateDesign } from "@/app/actions/templates";
 import { EditorBlockInspector } from "@/components/editor/editor-block-inspector";
 import { EditorBlockPalette } from "@/components/editor/editor-block-palette";
@@ -58,6 +58,7 @@ export function TemplateEditor({ template, org, assetsBaseUrl, isDefaultTemplate
   });
 
   const { document, setDocument, undo, redo, canUndo, canRedo } = useDocumentHistory(initialDocument);
+  const previewDocument = useDeferredValue(document);
   const selectedBlock = document.blocks.find((b) => b.id === selectedId) ?? null;
 
   const handleSave = useCallback(() => {
@@ -135,10 +136,10 @@ export function TemplateEditor({ template, org, assetsBaseUrl, isDefaultTemplate
         <SignatureHtmlPreview
           org={org}
           member={SAMPLE_MEMBER}
-          templateId={document.templateId}
-          targetPlatform={document.targetPlatform}
+          templateId={previewDocument.templateId}
+          targetPlatform={previewDocument.targetPlatform}
           assetsBaseUrl={assetsBaseUrl}
-          document={document}
+          document={previewDocument}
         />
       </CardContent>
     </Card>

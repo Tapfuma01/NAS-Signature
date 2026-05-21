@@ -21,6 +21,7 @@ import { blockTypeLabel } from "@/lib/document-editor/block-factory";
 import { cn } from "@/lib/utils";
 import type { SignatureBlock } from "@/types/signature-document";
 import { Copy, GripVertical, Trash2 } from "lucide-react";
+import { memo } from "react";
 
 type Props = {
   blocks: SignatureBlock[];
@@ -32,7 +33,7 @@ type Props = {
   disabled?: boolean;
 };
 
-function SortableRow({
+const SortableRow = memo(function SortableRow({
   block,
   selected,
   onSelect,
@@ -88,7 +89,7 @@ function SortableRow({
       </Button>
     </div>
   );
-}
+});
 
 export function EditorSortableBlocks({
   blocks,
