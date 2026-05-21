@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   Building2,
   LayoutTemplate,
@@ -57,7 +57,13 @@ function isAuthRoute(pathname: string) {
   return pathname === "/admin/login" || pathname === "/admin/forbidden";
 }
 
-function Breadcrumb({ pathname }: { pathname: string }) {
+function Breadcrumb({
+  pathname,
+  searchParams,
+}: {
+  pathname: string;
+  searchParams: URLSearchParams | null;
+}) {
   const templateMatch = pathname.match(/^\/admin\/templates\/([^/]+)\/edit$/);
   if (templateMatch) {
     return (
@@ -72,13 +78,16 @@ function Breadcrumb({ pathname }: { pathname: string }) {
   }
 
   if (pathname === "/admin/signatures/new") {
+    const isDuplicate = Boolean(searchParams?.get("from"));
     return (
       <nav className="text-muted-foreground mb-4 flex items-center gap-2 text-sm">
         <Link href="/admin" className="hover:text-foreground">
           Signatures
         </Link>
         <span aria-hidden>/</span>
-        <span className="text-foreground font-medium">Create signature</span>
+        <span className="text-foreground font-medium">
+          {isDuplicate ? "Duplicate signature" : "Create signature"}
+        </span>
       </nav>
     );
   }
@@ -101,6 +110,7 @@ function Breadcrumb({ pathname }: { pathname: string }) {
 
 export function AdminShell({ children, role, authEnabled }: Props) {
   const pathname = usePathname() ?? "";
+  const searchParams = useSearchParams();
 
   if (isAuthRoute(pathname)) {
     return <>{children}</>;
@@ -184,7 +194,7 @@ export function AdminShell({ children, role, authEnabled }: Props) {
           <span className="text-muted-foreground hidden text-sm sm:inline">Signature admin</span>
         </header>
         <main className="flex-1 p-6 lg:p-8">
-          <Breadcrumb pathname={pathname} />
+          <Breadcrumb pathname={pathname} searchParams={searchParams} />
           {children}
         </main>
       </SidebarInset>

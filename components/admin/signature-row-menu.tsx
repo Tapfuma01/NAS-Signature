@@ -22,6 +22,7 @@ import {
 } from "@/lib/auth/roles";
 import {
   Copy,
+  CopyPlus,
   Eye,
   LayoutTemplate,
   Loader2,
@@ -39,6 +40,7 @@ type Props = {
   role: AdminRole;
   publicUrl: string;
   onEdit: () => void;
+  onDuplicate: () => void;
   onPreview: () => void;
   onCopyLink: () => void;
   onDelete: () => void;
@@ -49,6 +51,7 @@ export function SignatureRowMenu({
   role,
   publicUrl,
   onEdit,
+  onDuplicate,
   onPreview,
   onCopyLink,
   onDelete,
@@ -89,10 +92,16 @@ export function SignatureRowMenu({
             Copy public link
           </DropdownMenuItem>
           {canEdit ? (
-            <DropdownMenuItem onClick={onEdit}>
-              <Pencil className="size-4" />
-              Edit member
-            </DropdownMenuItem>
+            <>
+              <DropdownMenuItem onClick={onEdit}>
+                <Pencil className="size-4" />
+                Edit member
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onDuplicate}>
+                <CopyPlus className="size-4" />
+                Duplicate signature
+              </DropdownMenuItem>
+            </>
           ) : null}
           {canDesign ? (
             <DropdownMenuItem

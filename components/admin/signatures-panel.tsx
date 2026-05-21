@@ -126,6 +126,10 @@ export function SignaturesPanel({
     router.push(`/admin/signatures/${row.id}`);
   }
 
+  function openDuplicate(row: SignatureRow) {
+    router.push(`/admin/signatures/new?from=${encodeURIComponent(row.id)}`);
+  }
+
   async function copyPublicLink(slug: string) {
     const url = publicUrlForSlug(slug);
     try {
@@ -395,6 +399,7 @@ export function SignaturesPanel({
                           role={role}
                           publicUrl={publicUrlForSlug(row.slug)}
                           onEdit={() => openEdit(row)}
+                          onDuplicate={() => openDuplicate(row)}
                           onPreview={() => setPreviewRow(row)}
                           onCopyLink={() => copyPublicLink(row.slug)}
                           onDelete={() => setDeleteTarget(row)}

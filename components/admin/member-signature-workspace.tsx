@@ -71,6 +71,8 @@ type Props = {
   assetsBaseUrl: string;
   readOnly?: boolean;
   r2Enabled?: boolean;
+  /** When set, create mode is duplicating this member's saved details. */
+  duplicateSourceName?: string;
 };
 
 export function MemberSignatureWorkspace({
@@ -82,7 +84,9 @@ export function MemberSignatureWorkspace({
   assetsBaseUrl,
   readOnly,
   r2Enabled = false,
+  duplicateSourceName,
 }: Props) {
+  const isDuplicateCreate = mode === "create" && Boolean(duplicateSourceName);
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [emailPending, startEmailTransition] = useTransition();
@@ -231,12 +235,18 @@ export function MemberSignatureWorkspace({
             </Button>
             <div>
               <h1 className="font-heading text-lg font-semibold tracking-tight">
-                {mode === "create" ? "Create signature" : "Edit member"}
+                {isDuplicateCreate
+                  ? "Duplicate signature"
+                  : mode === "create"
+                    ? "Create signature"
+                    : "Edit member"}
               </h1>
               <p className="text-muted-foreground text-sm">
-                {mode === "create"
-                  ? "Add a teammate — preview updates as you type."
-                  : "Update contact details — layout comes from the assigned template."}
+                {isDuplicateCreate
+                  ? `Copied from ${duplicateSourceName} — update details, then create to publish a new link.`
+                  : mode === "create"
+                    ? "Add a teammate — preview updates as you type."
+                    : "Update contact details — layout comes from the assigned template."}
               </p>
             </div>
           </div>

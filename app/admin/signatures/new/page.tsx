@@ -1,6 +1,7 @@
 import { MemberSignatureWorkspace } from "@/components/admin/member-signature-workspace";
 import { getPublicAppUrl } from "@/lib/app-url";
-import { getOrganizationSettings } from "@/lib/data";
+import { duplicateMemberFormFromSignature } from "@/lib/admin/duplicate-member-form";
+import { getOrganizationSettings, getSignatureById } from "@/lib/data";
 import { isR2Configured } from "@/lib/r2";
 import { getAdminSession } from "@/lib/auth/session";
 import { canMutateSignatures, isReadOnlyAdmin } from "@/lib/auth/roles";
@@ -12,20 +13,30 @@ import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Create signature",
+type PageProps = {
+  searchParams: Promise<{ from?: string }>;
 };
 
-export default async function NewSignaturePage() {
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+  const { from } = await searchParams;
+  return {
+    title: from ? "Duplicate signature" : "Create signature",
+  };
+}
+
+export default async function NewSignaturePage({ searchParams }: PageProps) {
   const session = await getAdminSession();
   if (session && !canMutateSignatures(session.role)) {
     redirect("/admin");
   }
 
-  const [organization, assetsBaseUrl, templates] = await Promise.all([
+  const { from: duplicateFromId } = await searchParams;
+
+  const [organization, assetsBaseUrl, templates, duplicateSource] = await Promise.all([
     getOrganizationSettings(),
     getPublicAppUrl(),
     loadAllTemplates(),
+    duplicateFromId ? getSignatureById(duplicateFromId) : Promise.resolve(null),
   ]);
 
   const org = organizationRowToOrgBrand(organization);
@@ -33,11 +44,14 @@ export default async function NewSignaturePage() {
   await getTemplateByIdAsync(defaultTemplateId);
   const templatesById = Object.fromEntries(templates.map((t) => [t.id, t]));
 
-  const initialForm = {
-    ...emptyMemberForm,
-    templateId: defaultTemplateId,
-    targetPlatform: organization.default_target_platform ?? "generic",
-  };
+  const isDuplicate = Boolean(duplicateSource);
+  const initialForm = duplicateSource
+    ? duplicateMemberFormFromSignature(duplicateSource)
+    : {
+        ...emptyMemberForm,
+        templateId: defaultTemplateId,
+        targetPlatform: organization.default_target_platform ?? "generic",
+      };
 
   return (
     <div className="-m-6 flex min-h-[calc(100dvh-3.5rem)] flex-col lg:-m-8">
@@ -50,6 +64,7 @@ export default async function NewSignaturePage() {
       assetsBaseUrl={assetsBaseUrl}
       readOnly={session ? isReadOnlyAdmin(session.role) : false}
       r2Enabled={isR2Configured()}
+      duplicateSourceName={isDuplicate ? duplicateSource!.name : undefined}
     />
     </div>
   );
