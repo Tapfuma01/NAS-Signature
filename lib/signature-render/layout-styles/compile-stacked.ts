@@ -51,7 +51,7 @@ export function compileStackedLayout(blocks: SignatureBlock[], ctx: StyleCompile
         break;
       case "banner":
         flushContacts();
-        rows.push(renderBannerRow(block));
+        rows.push(renderBannerRow(block, ctx.assetsBaseUrl));
         break;
       case "social":
         flushContacts();

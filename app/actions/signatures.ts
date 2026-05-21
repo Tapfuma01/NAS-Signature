@@ -12,6 +12,7 @@ import type { TargetPlatform } from "@/types/signature-document";
 import { TARGET_PLATFORMS } from "@/types/signature-document";
 import { getOrganizationSettings } from "@/lib/data";
 import { getPublicAppUrl } from "@/lib/app-url";
+import { requireSignatureMutation } from "@/lib/auth/require-action";
 
 const targetPlatformSchema = z.enum(
   TARGET_PLATFORMS as unknown as [TargetPlatform, ...TargetPlatform[]],
@@ -82,6 +83,9 @@ async function buildPersistedDocument(
 }
 
 export async function createSignature(input: z.infer<typeof createInput>): Promise<SignatureActionState> {
+  const auth = await requireSignatureMutation();
+  if (!auth.ok) return { ok: false, message: auth.message };
+
   const parsed = createInput.safeParse(input);
   if (!parsed.success) {
     return { ok: false, message: parsed.error.issues[0]?.message ?? "Invalid input" };
@@ -132,6 +136,9 @@ export async function createSignature(input: z.infer<typeof createInput>): Promi
 }
 
 export async function updateSignature(input: z.infer<typeof updateInput>): Promise<SignatureActionState> {
+  const auth = await requireSignatureMutation();
+  if (!auth.ok) return { ok: false, message: auth.message };
+
   const parsed = updateInput.safeParse(input);
   if (!parsed.success) {
     return { ok: false, message: parsed.error.issues[0]?.message ?? "Invalid input" };
@@ -193,6 +200,9 @@ const saveDesignInput = signatureFields.extend({
 export async function saveSignatureDesign(
   input: z.infer<typeof saveDesignInput>,
 ): Promise<SignatureActionState> {
+  const auth = await requireSignatureMutation();
+  if (!auth.ok) return { ok: false, message: auth.message };
+
   const parsed = saveDesignInput.safeParse(input);
   if (!parsed.success) {
     return { ok: false, message: parsed.error.issues[0]?.message ?? "Invalid input" };
@@ -256,7 +266,62 @@ export async function saveSignatureDesign(
   return { ok: true, slug };
 }
 
+const bulkIdsInput = z.object({
+  ids: z.array(z.string().uuid()).min(1).max(100),
+});
+
+const bulkTemplateInput = bulkIdsInput.extend({
+  templateId: z.string().max(64),
+});
+
+export async function bulkDeleteSignatures(ids: string[]): Promise<SignatureActionState> {
+  const auth = await requireSignatureMutation();
+  if (!auth.ok) return { ok: false, message: auth.message };
+
+  const parsed = bulkIdsInput.safeParse({ ids });
+  if (!parsed.success) {
+    return { ok: false, message: "Invalid selection" };
+  }
+
+  const sql = getSql();
+  for (const id of parsed.data.ids) {
+    await sql`DELETE FROM signatures WHERE id = ${id}::uuid`;
+  }
+  revalidatePath("/admin");
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+export async function bulkUpdateTemplate(
+  ids: string[],
+  templateId: string,
+): Promise<SignatureActionState> {
+  const auth = await requireSignatureMutation();
+  if (!auth.ok) return { ok: false, message: auth.message };
+
+  const parsed = bulkTemplateInput.safeParse({ ids, templateId });
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const normalized = normalizeTemplateId(parsed.data.templateId);
+  const sql = getSql();
+  for (const id of parsed.data.ids) {
+    await sql`
+      UPDATE signatures
+      SET template_id = ${normalized}, updated_at = now()
+      WHERE id = ${id}::uuid
+    `;
+  }
+  revalidatePath("/admin");
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
 export async function deleteSignature(id: string): Promise<SignatureActionState> {
+  const auth = await requireSignatureMutation();
+  if (!auth.ok) return { ok: false, message: auth.message };
+
   const idParsed = z.string().uuid().safeParse(id);
   if (!idParsed.success) {
     return { ok: false, message: "Invalid id" };

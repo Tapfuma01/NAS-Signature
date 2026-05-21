@@ -8,6 +8,7 @@ import { TemplatePicker } from "@/components/template-picker";
 import { TemplateWrapper } from "@/components/TemplateWrapper";
 import { buildPlainTextSignature, buildSignatureHtml } from "@/components/SignatureTemplate";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { getExportAssetsBaseUrl } from "@/lib/export-base-url";
 import { DEFAULT_TEMPLATE_ID } from "@/lib/templates";
 import type { OrgBrand } from "@/types/org-brand";
 import type { TargetPlatform } from "@/types/signature-document";
@@ -30,7 +31,9 @@ export function SignatureWorkspace({
   const content = { ...form, ...org };
 
   const assetsBaseUrl =
-    typeof window !== "undefined" && window.location.origin ? window.location.origin : "";
+    typeof window !== "undefined"
+      ? getExportAssetsBaseUrl(window.location.origin)
+      : getExportAssetsBaseUrl();
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-background text-foreground">

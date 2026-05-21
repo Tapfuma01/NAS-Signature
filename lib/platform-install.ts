@@ -71,6 +71,7 @@ export const PLATFORM_META: Record<TargetPlatform, PlatformMeta> = {
     ],
     installTips: [
       "Gmail may strip some styles — the copy is already simplified for Gmail.",
+      "If the logo is missing, use an HTTPS logo URL hosted on your public website (not localhost). Set it under Admin → Organization.",
       "Very large signatures can be clipped (~102KB); keep banners optimized.",
     ],
   },

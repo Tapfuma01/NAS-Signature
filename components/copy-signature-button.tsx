@@ -3,6 +3,7 @@
 import { useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { buildOutlookHtmFile, downloadHtmlFile, wrapHtmlForClipboard } from "@/lib/clipboard-html";
+import { isLocalhostImageUrl } from "@/lib/signature-render/image-url";
 import { getPlatformMeta } from "@/lib/platform-install";
 import type { TargetPlatform } from "@/types/signature-document";
 import { Download } from "lucide-react";
@@ -54,6 +55,14 @@ export function CopySignatureButton({
 
   const handleCopy = useCallback(async () => {
     const rawHtml = buildHtml();
+    const imgSrcMatch = rawHtml.match(/<img[^>]+src="([^"]+)"/i);
+    const imgSrc = imgSrcMatch?.[1] ?? "";
+    if (imgSrc && isLocalhostImageUrl(imgSrc)) {
+      toast.warning("Logo may not appear in Gmail", {
+        description:
+          "The logo URL points to localhost. Set NEXT_PUBLIC_APP_URL to your public site, or add an HTTPS logo URL under Organization settings.",
+      });
+    }
     const html = wrapHtmlForClipboard(rawHtml, targetPlatform);
 
     const tryRich = async (): Promise<boolean> => {

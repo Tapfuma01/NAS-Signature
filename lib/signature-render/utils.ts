@@ -1,4 +1,5 @@
 import { escapeHtml } from "@/lib/escape-html";
+import { resolveExportAssetsBaseUrl, toAbsoluteHttpsImageUrl } from "@/lib/signature-render/image-url";
 
 export const BODY_FONT_SAFE = "Arial, Helvetica, sans-serif";
 export const HEADING_FONT_LEGACY = "Montserrat, Arial, Helvetica, sans-serif";
@@ -32,14 +33,15 @@ export function resolveLogoUrl(
   orgLogoUrl: string,
   explicitSrc?: string,
 ): { url: string; width: number; height: number; isPlaceholder: boolean } {
-  const origin = assetsBaseUrl.replace(/\/+$/, "");
+  const origin = resolveExportAssetsBaseUrl(assetsBaseUrl);
   const envLogo =
     typeof process !== "undefined" && process.env.NEXT_PUBLIC_SIGNATURE_LOGO_URL
       ? process.env.NEXT_PUBLIC_SIGNATURE_LOGO_URL.trim()
       : "";
   const explicitLogo = (explicitSrc?.trim() || envLogo || orgLogoUrl || "").trim();
-  const faviconUrl = origin ? `${origin}/c4-favicon.png` : "";
-  const resolvedLogo = explicitLogo || faviconUrl;
+  const faviconPath = "/c4-favicon.png";
+  const rawResolved = explicitLogo || (origin ? `${origin}${faviconPath}` : "");
+  const resolvedLogo = rawResolved ? toAbsoluteHttpsImageUrl(rawResolved, origin) : "";
   const hasCustomLogo = Boolean(explicitLogo);
   return {
     url: resolvedLogo,

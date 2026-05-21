@@ -1,5 +1,6 @@
 import { escapeHtml } from "@/lib/escape-html";
 import type { RenderProfile } from "@/lib/signature-render/profiles/types";
+import { toAbsoluteHttpsImageUrl } from "@/lib/signature-render/image-url";
 import { linkOrSpan, resolveLogoUrl, telHref, whatsappHref } from "@/lib/signature-render/utils";
 import type { LayoutStyleConfig } from "@/lib/signature-render/layout-styles/config";
 import type { SignatureBlock, SignatureFieldValues, SignatureTheme } from "@/types/signature-document";
@@ -62,10 +63,18 @@ export function renderLogoHtml(
     return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="120" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;border:1px dashed ${safeBorder};"><tr><td align="center" valign="middle" height="44" style="font-family:${ctx.profile.bodyFont};font-size:10px;color:${safeMuted};padding:6px;">Logo</td></tr></table>`;
   }
 
-  const src = escapeHtml(resolved.url || block.src);
+  const rawSrc = resolved.url || toAbsoluteHttpsImageUrl(block.src, assetsBaseUrl);
+  const src = escapeHtml(rawSrc);
   const w = block.width || resolved.width;
   const h = block.height || resolved.height;
-  return `<img src="${src}" width="${w}" height="${h}" alt="${logoAlt}" style="display:block;border:0;outline:none;text-decoration:none;max-width:${w}px;height:auto;">`;
+  const img = `<img src="${src}" width="${w}" height="${h}" alt="${logoAlt}" style="display:block;border:0;outline:none;text-decoration:none;max-width:${w}px;height:auto;">`;
+
+  // Gmail loads images via a proxy; a nested presentation table improves reliability.
+  if (ctx.profile.platform === "google_workspace") {
+    return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;"><tr><td align="left" style="padding:0;line-height:0;font-size:0;">${img}</td></tr></table>`;
+  }
+
+  return img;
 }
 
 export function renderHeadingRow(
@@ -269,10 +278,13 @@ export function renderSpacerRow(block: Extract<SignatureBlock, { type: "spacer" 
   return `<tr><td height="${h}" style="font-size:0;line-height:0;height:${h}px;">&nbsp;</td></tr>`;
 }
 
-export function renderBannerRow(block: Extract<SignatureBlock, { type: "banner" }>): string {
+export function renderBannerRow(
+  block: Extract<SignatureBlock, { type: "banner" }>,
+  assetsBaseUrl: string,
+): string {
   const w = block.width ?? 500;
   const h = block.height ?? 80;
-  const src = escapeHtml(block.src);
+  const src = escapeHtml(toAbsoluteHttpsImageUrl(block.src, assetsBaseUrl));
   const img = `<img src="${src}" width="${w}" height="${h}" alt="" style="display:block;border:0;max-width:${w}px;height:auto;">`;
   const inner = block.href
     ? `<a href="${escapeHtml(block.href)}" style="text-decoration:none;">${img}</a>`

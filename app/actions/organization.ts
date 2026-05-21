@@ -5,6 +5,7 @@ import { z } from "zod";
 import { getSql } from "@/lib/db";
 import { DEFAULT_TEMPLATE_ID, normalizeTemplateId } from "@/lib/templates";
 import { TARGET_PLATFORMS, type TargetPlatform } from "@/types/signature-document";
+import { requireOrgSettingsMutation } from "@/lib/auth/require-action";
 
 const hexColor = z
   .string()
@@ -32,6 +33,9 @@ export type OrgSettingsActionState = { ok: true } | { ok: false; message: string
 export async function updateOrganizationSettings(
   input: z.infer<typeof orgSettingsInput>,
 ): Promise<OrgSettingsActionState> {
+  const auth = await requireOrgSettingsMutation();
+  if (!auth.ok) return { ok: false, message: auth.message };
+
   const parsed = orgSettingsInput.safeParse(input);
   if (!parsed.success) {
     return { ok: false, message: parsed.error.issues[0]?.message ?? "Invalid input" };
