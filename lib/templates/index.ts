@@ -1,4 +1,9 @@
-import { DEFAULT_TEMPLATE_ID, SIGNATURE_TEMPLATES } from "@/lib/templates/catalog";
+import {
+  DEFAULT_TEMPLATE_ID,
+  SIGNATURE_TEMPLATES,
+  getTemplateById as getCatalogTemplateById,
+} from "@/lib/templates/catalog";
+import { normalizeTemplateId as normalizeTemplateIdStore } from "@/lib/templates/store";
 import type { SignatureTemplateDefinition } from "@/lib/templates/types";
 import { resolveLogoUrl } from "@/lib/signature-render/utils";
 import type { OrgBrand } from "@/types/org-brand";
@@ -22,13 +27,18 @@ export function getLayoutStyle(templateId: string) {
 }
 
 export function getTemplateById(id: string): SignatureTemplateDefinition {
-  return SIGNATURE_TEMPLATES.find((t) => t.id === id) ?? SIGNATURE_TEMPLATES[0]!;
+  return getCatalogTemplateById(id);
 }
 
 export function normalizeTemplateId(id: string | null | undefined): string {
-  if (!id || id === "default") return DEFAULT_TEMPLATE_ID;
-  return getTemplateById(id).id;
+  return normalizeTemplateIdStore(id);
 }
+
+export {
+  loadAllTemplates,
+  getTemplateByIdAsync,
+  getTemplateDocument,
+} from "@/lib/templates/store";
 
 function cloneBlocks(blocks: SignatureBlock[]): SignatureBlock[] {
   return JSON.parse(JSON.stringify(blocks)) as SignatureBlock[];
@@ -89,8 +99,10 @@ export function buildDocumentFromTemplate(input: {
   targetPlatform?: TargetPlatform;
   assetsBaseUrl: string;
   orgLogoUrl: string;
+  template?: SignatureTemplateDefinition;
 }): SignatureDocument {
-  const template = getTemplateById(normalizeTemplateId(input.templateId));
+  const template =
+    input.template ?? getTemplateById(normalizeTemplateId(input.templateId));
   const theme = { ...input.theme, ...template.themeOverrides };
   return {
     version: 1,

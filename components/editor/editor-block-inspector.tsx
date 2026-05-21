@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { BlockStyleControls } from "@/components/editor/block-style-controls";
 import type { SignatureBlock, SignatureDocument } from "@/types/signature-document";
 
 type Props = {
@@ -168,22 +169,109 @@ export function EditorBlockInspector({
       )}
 
       {block.type === "divider" && (
-        <div className="grid gap-2">
-          <Label>Style</Label>
-          <Select
-            value={block.variant ?? "line"}
-            onValueChange={(v) => onUpdate(id, { variant: v as "accent" | "line" })}
-            disabled={disabled}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="accent">Accent bar</SelectItem>
-              <SelectItem value="line">Line</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <>
+          <div className="grid gap-2">
+            <Label>Style</Label>
+            <Select
+              value={block.variant ?? "line"}
+              onValueChange={(v) => {
+                const variant = v as "accent" | "line";
+                const patch: Partial<Extract<SignatureBlock, { type: "divider" }>> = {
+                  variant,
+                };
+                if (block.thickness == null) {
+                  patch.thickness = variant === "accent" ? 3 : 1;
+                }
+                onUpdate(id, patch);
+              }}
+              disabled={disabled}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="accent">Accent bar</SelectItem>
+                <SelectItem value="line">Line</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="grid gap-2">
+              <Label>Thickness (px)</Label>
+              <Input
+                type="number"
+                min={1}
+                max={24}
+                value={block.thickness ?? (block.variant === "line" ? 1 : 3)}
+                onChange={(e) =>
+                  onUpdate(id, {
+                    thickness: Math.min(24, Math.max(1, Number(e.target.value) || 1)),
+                  })
+                }
+                disabled={disabled}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Color</Label>
+              <Input
+                type="color"
+                className="h-9 w-full cursor-pointer p-1"
+                value={block.color ?? "#b8860b"}
+                onChange={(e) => onUpdate(id, { color: e.target.value })}
+                disabled={disabled}
+              />
+            </div>
+          </div>
+          <div className="grid gap-2">
+            <Label>Width</Label>
+            <Select
+              value={
+                typeof block.width === "number"
+                  ? "custom"
+                  : (block.width ?? "template")
+              }
+              onValueChange={(v) => {
+                if (v === "template") {
+                  onUpdate(id, { width: undefined });
+                } else if (v === "full") {
+                  onUpdate(id, { width: "full" });
+                } else if (v === "short") {
+                  onUpdate(id, { width: "short" });
+                } else {
+                  onUpdate(id, { width: 80 });
+                }
+              }}
+              disabled={disabled}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="template">Template default</SelectItem>
+                <SelectItem value="full">Full width</SelectItem>
+                <SelectItem value="short">Short (80px)</SelectItem>
+                <SelectItem value="custom">Custom (px)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {typeof block.width === "number" ? (
+            <div className="grid gap-2">
+              <Label>Custom width (px)</Label>
+              <Input
+                type="number"
+                min={20}
+                max={600}
+                value={block.width}
+                onChange={(e) =>
+                  onUpdate(id, {
+                    width: Math.min(600, Math.max(20, Number(e.target.value) || 80)),
+                  })
+                }
+                disabled={disabled}
+              />
+            </div>
+          ) : null}
+        </>
       )}
 
       {block.type === "footer_link" && (
@@ -298,6 +386,14 @@ export function EditorBlockInspector({
           </button>
         </div>
       )}
+
+      <div className="border-t border-border pt-4">
+        <BlockStyleControls
+          block={block}
+          onUpdate={(patch) => onUpdate(id, patch)}
+          disabled={disabled}
+        />
+      </div>
 
       <div className="border-t border-border pt-4">
         <p className="text-muted-foreground mb-3 text-xs font-medium uppercase tracking-wide">Canvas</p>

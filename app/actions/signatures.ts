@@ -3,8 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getSql } from "@/lib/db";
-import { buildDocumentForSave, parseStoredDocument } from "@/lib/signature-resolve";
-import type { SignatureDocument } from "@/types/signature-document";
+import { getTemplateByIdAsync } from "@/lib/templates/store";
 import { allocateUniqueSlug } from "@/lib/slug";
 import { DEFAULT_TEMPLATE_ID, normalizeTemplateId } from "@/lib/templates";
 import { organizationRowToOrgBrand } from "@/types/org-brand";
@@ -48,38 +47,14 @@ function isUniqueViolation(err: unknown): boolean {
   );
 }
 
-async function buildPersistedDocument(
+async function resolvePersistedMeta(
   v: z.infer<typeof signatureFields>,
-): Promise<{ documentJson: string; templateId: string; targetPlatform: TargetPlatform }> {
+): Promise<{ templateId: string; targetPlatform: TargetPlatform }> {
   const orgRow = await getOrganizationSettings();
-  const org = organizationRowToOrgBrand(orgRow);
-  const member = {
-    fullName: v.name,
-    jobTitle: v.jobTitle,
-    phone: v.phone,
-    email: v.email,
-    whatsapp: v.whatsapp ?? "",
-  };
-  let assetsBaseUrl = "";
-  try {
-    assetsBaseUrl = await getPublicAppUrl();
-  } catch {
-    assetsBaseUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "") ?? "";
-  }
   const templateId = normalizeTemplateId(v.templateId);
   const targetPlatform = v.targetPlatform ?? orgRow.default_target_platform ?? "generic";
-  const document = buildDocumentForSave({
-    org,
-    member,
-    templateId,
-    targetPlatform,
-    assetsBaseUrl,
-  });
-  return {
-    documentJson: JSON.stringify(document),
-    templateId,
-    targetPlatform,
-  };
+  await getTemplateByIdAsync(templateId);
+  return { templateId, targetPlatform };
 }
 
 export async function createSignature(input: z.infer<typeof createInput>): Promise<SignatureActionState> {
@@ -93,7 +68,7 @@ export async function createSignature(input: z.infer<typeof createInput>): Promi
   const v = parsed.data;
   const sql = getSql();
   const slug = await allocateUniqueSlug(sql, v.name);
-  const { documentJson, templateId, targetPlatform } = await buildPersistedDocument(v);
+  const { templateId, targetPlatform } = await resolvePersistedMeta(v);
   try {
     const rows = (await sql`
       INSERT INTO signatures (
@@ -118,7 +93,7 @@ export async function createSignature(input: z.infer<typeof createInput>): Promi
         ${v.avatarUrl ?? null},
         ${templateId},
         ${targetPlatform},
-        ${documentJson}::jsonb,
+        NULL,
         ${slug},
         now()
       )
@@ -162,7 +137,7 @@ export async function updateSignature(input: z.infer<typeof updateInput>): Promi
   if (!slug) {
     return { ok: false, message: "Could not resolve slug" };
   }
-  const { documentJson, templateId, targetPlatform } = await buildPersistedDocument(v);
+  const { templateId, targetPlatform } = await resolvePersistedMeta(v);
   try {
     await sql`
       UPDATE signatures
@@ -175,7 +150,7 @@ export async function updateSignature(input: z.infer<typeof updateInput>): Promi
         avatar_url = ${v.avatarUrl ?? null},
         template_id = ${templateId},
         target_platform = ${targetPlatform},
-        document = ${documentJson}::jsonb,
+        document = NULL,
         slug = ${slug},
         updated_at = now()
       WHERE id = ${v.id}::uuid
@@ -187,80 +162,6 @@ export async function updateSignature(input: z.infer<typeof updateInput>): Promi
     return { ok: false, message: "Failed to update signature" };
   }
   revalidatePath("/admin");
-  revalidatePath("/", "layout");
-  revalidatePath(`/${slug}`);
-  return { ok: true, slug };
-}
-
-const saveDesignInput = signatureFields.extend({
-  id: z.string().uuid(),
-  document: z.unknown(),
-});
-
-export async function saveSignatureDesign(
-  input: z.infer<typeof saveDesignInput>,
-): Promise<SignatureActionState> {
-  const auth = await requireSignatureMutation();
-  if (!auth.ok) return { ok: false, message: auth.message };
-
-  const parsed = saveDesignInput.safeParse(input);
-  if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Invalid input" };
-  }
-  const v = parsed.data;
-  const document = parseStoredDocument(v.document);
-  if (!document) {
-    return { ok: false, message: "Invalid signature document" };
-  }
-
-  const sql = getSql();
-  const existing = (await sql`
-    SELECT name, slug FROM signatures WHERE id = ${v.id}::uuid LIMIT 1
-  `) as { name: string; slug: string }[];
-  if (!existing[0]) {
-    return { ok: false, message: "Signature not found" };
-  }
-
-  const slug =
-    existing[0].name === v.name
-      ? existing[0].slug
-      : await allocateUniqueSlug(sql, v.name, v.id);
-  if (!slug) {
-    return { ok: false, message: "Could not resolve slug" };
-  }
-
-  const persisted: SignatureDocument = {
-    ...document,
-    templateId: normalizeTemplateId(document.templateId),
-    targetPlatform: v.targetPlatform ?? document.targetPlatform ?? "generic",
-  };
-
-  try {
-    await sql`
-      UPDATE signatures
-      SET
-        name = ${v.name},
-        job_title = ${v.jobTitle},
-        email = ${v.email},
-        phone = ${v.phone},
-        whatsapp = ${v.whatsapp ?? null},
-        avatar_url = ${v.avatarUrl ?? null},
-        template_id = ${persisted.templateId},
-        target_platform = ${persisted.targetPlatform},
-        document = ${JSON.stringify(persisted)}::jsonb,
-        slug = ${slug},
-        updated_at = now()
-      WHERE id = ${v.id}::uuid
-    `;
-  } catch (err) {
-    if (isUniqueViolation(err)) {
-      return { ok: false, message: "Slug conflict — try a different name" };
-    }
-    return { ok: false, message: "Failed to save design" };
-  }
-
-  revalidatePath("/admin");
-  revalidatePath(`/admin/signatures/${v.id}/edit`);
   revalidatePath("/", "layout");
   revalidatePath(`/${slug}`);
   return { ok: true, slug };
@@ -309,7 +210,7 @@ export async function bulkUpdateTemplate(
   for (const id of parsed.data.ids) {
     await sql`
       UPDATE signatures
-      SET template_id = ${normalized}, updated_at = now()
+      SET template_id = ${normalized}, document = NULL, updated_at = now()
       WHERE id = ${id}::uuid
     `;
   }

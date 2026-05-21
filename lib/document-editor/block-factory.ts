@@ -1,4 +1,11 @@
+import type { BlockStyle } from "@/types/block-style";
 import type { SignatureBlock } from "@/types/signature-document";
+
+const DEFAULT_SPACING: BlockStyle = {
+  paddingTop: 0,
+  paddingBottom: 8,
+  marginBottom: 0,
+};
 
 export function newBlockId(): string {
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
@@ -25,13 +32,40 @@ export function createBlock(type: PaletteBlockType): SignatureBlock {
   const id = newBlockId();
   switch (type) {
     case "logo":
-      return { id, type: "logo", src: "", width: 180, height: 48, align: "left" };
+      return {
+        id,
+        type: "logo",
+        src: "",
+        width: 180,
+        height: 48,
+        align: "left",
+        style: { ...DEFAULT_SPACING, paddingBottom: 12 },
+      };
     case "heading":
-      return { id, type: "heading", text: "Your name", level: "name" };
+      return {
+        id,
+        type: "heading",
+        text: "Your name",
+        level: "name",
+        style: { paddingBottom: 4 },
+      };
     case "contact_row":
-      return { id, type: "contact_row", label: "Phone", valueField: "phone" };
+      return {
+        id,
+        type: "contact_row",
+        label: "Phone",
+        valueField: "phone",
+        style: { paddingBottom: 4 },
+      };
     case "divider":
-      return { id, type: "divider", variant: "line" };
+      return {
+        id,
+        type: "divider",
+        variant: "accent",
+        thickness: 3,
+        width: "short",
+        style: { paddingTop: 4, paddingBottom: 12 },
+      };
     case "social":
       return {
         id,
@@ -44,7 +78,7 @@ export function createBlock(type: PaletteBlockType): SignatureBlock {
     case "footer_link":
       return { id, type: "footer_link", label: "www.example.com", url: "https://example.com" };
     case "spacer":
-      return { id, type: "spacer", height: 12 };
+      return { id, type: "spacer", height: 10 };
     case "banner":
       return { id, type: "banner", src: "", href: "", width: 500, height: 80 };
     case "disclaimer":

@@ -5,7 +5,7 @@ import {
   renderDividerRow,
   renderFooterRow,
   renderHeadingRow,
-  renderLogoHtml,
+  renderLogoRow,
   renderSocialRow,
   renderSpacerRow,
   type StyleCompileContext,
@@ -26,9 +26,7 @@ export function compileStackedLayout(blocks: SignatureBlock[], ctx: StyleCompile
     switch (block.type) {
       case "logo":
         flushContacts();
-        rows.push(
-          `<tr><td style="padding:0 0 10px 0;vertical-align:top;">${renderLogoHtml(block, ctx)}</td></tr>`,
-        );
+        rows.push(renderLogoRow(block, ctx));
         break;
       case "heading":
         flushContacts();
@@ -51,7 +49,7 @@ export function compileStackedLayout(blocks: SignatureBlock[], ctx: StyleCompile
         break;
       case "banner":
         flushContacts();
-        rows.push(renderBannerRow(block, ctx.assetsBaseUrl));
+        rows.push(renderBannerRow(block, ctx));
         break;
       case "social":
         flushContacts();

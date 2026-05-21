@@ -80,11 +80,11 @@ export function SignatureRowMenu({
           {canDesign ? (
             <DropdownMenuItem
               onClick={() => {
-                window.location.href = `/admin/signatures/${row.id}/edit`;
+                window.location.href = `/admin/templates/${row.template_id}/edit`;
               }}
             >
               <LayoutTemplate className="size-4" />
-              Open design editor
+              Edit template design
             </DropdownMenuItem>
           ) : null}
         </DropdownMenuGroup>

@@ -6,31 +6,26 @@ import {
   normalizeTemplateId,
   themeFromOrgBrand,
 } from "@/lib/templates";
+import { getTemplateByIdAsync } from "@/lib/templates/store";
+import type { SignatureTemplateDefinition } from "@/lib/templates/types";
 import type { OrgBrand } from "@/types/org-brand";
 import type { SignatureDocument, TargetPlatform } from "@/types/signature-document";
 import type { SignatureFormState } from "@/types/signature";
 import type { SignatureRow } from "@/types/signature-row";
 
-function isSignatureDocument(value: unknown): value is SignatureDocument {
-  if (!value || typeof value !== "object") return false;
-  const v = value as SignatureDocument;
-  return v.version === 1 && Array.isArray(v.blocks) && typeof v.templateId === "string";
-}
-
-export function parseStoredDocument(raw: unknown): SignatureDocument | null {
-  if (!raw) return null;
-  const parsed = typeof raw === "string" ? (JSON.parse(raw) as unknown) : raw;
-  return isSignatureDocument(parsed) ? parsed : null;
-}
-
-/** Re-apply current flat fields onto stored or template document layout. */
+/**
+ * Resolve a signature for render/export.
+ * Layout always comes from the global template; member rows supply user data only.
+ */
 export function resolveSignatureDocument(input: {
-  row?: Pick<SignatureRow, "template_id" | "document" | "target_platform"> | null;
   org: OrgBrand;
   member: SignatureFormState;
   assetsBaseUrl: string;
   templateId?: string;
   targetPlatform?: TargetPlatform;
+  /** Global template definition (pass from server after loadAllTemplates). */
+  template?: SignatureTemplateDefinition;
+  row?: Pick<SignatureRow, "template_id" | "target_platform"> | null;
 }): SignatureDocument {
   const templateId = normalizeTemplateId(
     input.templateId ?? input.row?.template_id ?? "corporate-classic",
@@ -41,26 +36,28 @@ export function resolveSignatureDocument(input: {
     "generic";
   const fields = fieldsFromOrgAndForm(input.org, input.member);
   const theme = themeFromOrgBrand(input.org);
-
-  const stored = parseStoredDocument(input.row?.document ?? null);
-  if (stored) {
-    return {
-      ...stored,
-      templateId: normalizeTemplateId(stored.templateId || templateId),
-      targetPlatform,
-      theme: { ...theme, ...stored.theme },
-      blocks: hydrateTemplateBlocks(stored.blocks, fields, input.assetsBaseUrl, input.org.logoUrl),
-    };
-  }
+  const template = input.template ?? undefined;
 
   return buildDocumentFromTemplate({
     templateId,
+    template,
     fields,
     theme,
     targetPlatform,
     assetsBaseUrl: input.assetsBaseUrl,
     orgLogoUrl: input.org.logoUrl,
   });
+}
+
+/** Server-side resolve using DB-backed templates. */
+export async function resolveSignatureDocumentAsync(
+  input: Parameters<typeof resolveSignatureDocument>[0],
+): Promise<SignatureDocument> {
+  const templateId = normalizeTemplateId(
+    input.templateId ?? input.row?.template_id ?? "corporate-classic",
+  );
+  const template = await getTemplateByIdAsync(templateId);
+  return resolveSignatureDocument({ ...input, templateId, template });
 }
 
 export function documentToFormState(row: SignatureRow): SignatureFormState {
@@ -73,16 +70,23 @@ export function documentToFormState(row: SignatureRow): SignatureFormState {
   };
 }
 
+/** @deprecated Signatures no longer persist layout snapshots. Kept for type compatibility. */
+export function parseStoredDocument(_raw: unknown): SignatureDocument | null {
+  return null;
+}
+
 export function buildDocumentForSave(input: {
   org: OrgBrand;
   member: SignatureFormState;
   templateId: string;
   targetPlatform: TargetPlatform;
   assetsBaseUrl: string;
+  template?: SignatureTemplateDefinition;
 }): SignatureDocument {
   const fields = contentToFieldValues({ ...input.member, ...input.org });
   return buildDocumentFromTemplate({
     templateId: input.templateId,
+    template: input.template,
     fields,
     theme: themeFromOrgBrand(input.org),
     targetPlatform: input.targetPlatform,

@@ -6,15 +6,17 @@ import { resolveSignatureDocument } from "@/lib/signature-resolve";
 import type { OrgBrand } from "@/types/org-brand";
 import type { SignatureDocument, TargetPlatform } from "@/types/signature-document";
 import type { SignatureFormState } from "@/types/signature";
+import type { SignatureTemplateDefinition } from "@/lib/templates/types";
 import type { SignatureRow } from "@/types/signature-row";
 
 type Props = {
   org: OrgBrand;
   member: SignatureFormState;
   templateId: string;
+  template?: SignatureTemplateDefinition;
   targetPlatform?: TargetPlatform;
   assetsBaseUrl: string;
-  storedRow?: Pick<SignatureRow, "template_id" | "document" | "target_platform"> | null;
+  storedRow?: Pick<SignatureRow, "template_id" | "target_platform"> | null;
   /** When set, renders this document directly (editor WYSIWYG). */
   document?: SignatureDocument;
   className?: string;
@@ -26,6 +28,7 @@ export function SignatureHtmlPreview({
   org,
   member,
   templateId,
+  template,
   targetPlatform = "generic",
   assetsBaseUrl,
   storedRow,
@@ -37,11 +40,12 @@ export function SignatureHtmlPreview({
     const document =
       documentOverride ??
       resolveSignatureDocument({
-        row: storedRow ?? { template_id: templateId, document: null, target_platform: targetPlatform },
+        row: storedRow ?? { template_id: templateId, target_platform: targetPlatform },
         org,
         member,
         assetsBaseUrl,
         templateId,
+        template,
         targetPlatform,
       });
     const fields = {
@@ -61,7 +65,7 @@ export function SignatureHtmlPreview({
       orgLogoUrl: org.logoUrl,
       options: { assetsBaseUrl, targetPlatform },
     });
-  }, [org, member, templateId, targetPlatform, assetsBaseUrl, storedRow, documentOverride]);
+  }, [org, member, templateId, template, targetPlatform, assetsBaseUrl, storedRow, documentOverride]);
 
   return (
     <div

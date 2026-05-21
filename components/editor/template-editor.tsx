@@ -2,21 +2,18 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, useTransition } from "react";
-import { saveSignatureDesign } from "@/app/actions/signatures";
+import { saveTemplateDesign } from "@/app/actions/templates";
 import { EditorBlockInspector } from "@/components/editor/editor-block-inspector";
 import { EditorBlockPalette } from "@/components/editor/editor-block-palette";
 import { EditorMobileTabs } from "@/components/editor/editor-mobile-tabs";
 import { EditorSortableBlocks } from "@/components/editor/editor-sortable-blocks";
 import { EditorToolbar } from "@/components/editor/editor-toolbar";
 import { PlatformSelect } from "@/components/platform-select";
-import { SignatureCopyPanel } from "@/components/signature-copy-panel";
 import { SignatureHtmlPreview } from "@/components/signature-html-preview";
-import { buildPlainTextFromDocument } from "@/lib/signature-render/plain-text";
-import { renderSignatureDocument } from "@/lib/signature-render/render-document";
-import { contentToFieldValues } from "@/lib/signature-render/form-to-document";
+import { buildDocumentFromTemplate, themeFromOrgBrand } from "@/lib/templates";
+import { fieldsFromOrgAndForm } from "@/lib/templates";
+import type { SignatureTemplateDefinition } from "@/lib/templates/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useDocumentHistory } from "@/hooks/use-document-history";
 import {
   duplicateBlock,
@@ -25,40 +22,39 @@ import {
   reorderBlocks,
   updateBlock,
 } from "@/lib/document-editor/document-mutations";
-import { resolveSignatureDocument } from "@/lib/signature-resolve";
 import type { OrgBrand } from "@/types/org-brand";
 import type { TargetPlatform } from "@/types/signature-document";
 import type { SignatureFormState } from "@/types/signature";
-import type { SignatureRow } from "@/types/signature-row";
 import { toast } from "sonner";
 
-type Props = {
-  signature: SignatureRow;
-  org: OrgBrand;
-  assetsBaseUrl: string;
+const SAMPLE_MEMBER: SignatureFormState = {
+  fullName: "Alex Morgan",
+  jobTitle: "Marketing Manager",
+  email: "alex@example.com",
+  phone: "+27 12 345 6789",
+  whatsapp: "+27 82 000 0000",
 };
 
-export function SignatureEditor({ signature, org, assetsBaseUrl }: Props) {
+type Props = {
+  template: SignatureTemplateDefinition;
+  org: OrgBrand;
+  assetsBaseUrl: string;
+  isDefaultTemplate?: boolean;
+};
+
+export function TemplateEditor({ template, org, assetsBaseUrl, isDefaultTemplate }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [member, setMember] = useState<SignatureFormState>({
-    fullName: signature.name,
-    jobTitle: signature.job_title,
-    phone: signature.phone,
-    email: signature.email,
-    whatsapp: signature.whatsapp ?? "",
-  });
 
-  const publicUrl = `${assetsBaseUrl.replace(/\/+$/, "")}/${signature.slug}`;
-
-  const initialDocument = resolveSignatureDocument({
-    row: signature,
-    org,
-    member,
+  const initialDocument = buildDocumentFromTemplate({
+    templateId: template.id,
+    template,
+    fields: fieldsFromOrgAndForm(org, SAMPLE_MEMBER),
+    theme: themeFromOrgBrand(org),
+    targetPlatform: "generic",
     assetsBaseUrl,
-    templateId: signature.template_id,
-    targetPlatform: signature.target_platform,
+    orgLogoUrl: org.logoUrl,
   });
 
   const { document, setDocument, undo, redo, canUndo, canRedo } = useDocumentHistory(initialDocument);
@@ -66,25 +62,17 @@ export function SignatureEditor({ signature, org, assetsBaseUrl }: Props) {
 
   const handleSave = useCallback(() => {
     startTransition(async () => {
-      const res = await saveSignatureDesign({
-        id: signature.id,
-        name: member.fullName,
-        jobTitle: member.jobTitle,
-        email: member.email,
-        phone: member.phone,
-        whatsapp: member.whatsapp || null,
-        avatarUrl: signature.avatar_url,
-        templateId: document.templateId,
-        targetPlatform: document.targetPlatform,
+      const res = await saveTemplateDesign({
+        templateId: template.id,
         document,
       });
       if (!res.ok) toast.error(res.message);
       else {
-        toast.success("Signature saved");
+        toast.success("Template saved — all linked signatures will use this design");
         router.refresh();
       }
     });
-  }, [signature.id, signature.avatar_url, member, document, router]);
+  }, [template.id, document, router]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -106,9 +94,12 @@ export function SignatureEditor({ signature, org, assetsBaseUrl }: Props) {
   }, [undo, redo, handleSave]);
 
   const blocksPanel = (
-    <Card className="shadow-sm">
+    <Card className="shadow-sm transition-shadow hover:shadow-md">
       <CardHeader className="py-3">
         <CardTitle className="text-sm">Blocks</CardTitle>
+        <p className="text-muted-foreground text-xs">
+          Drag to reorder. Changes apply to every signature using this template.
+        </p>
       </CardHeader>
       <CardContent className="flex flex-col gap-4 pt-0">
         <EditorBlockPalette
@@ -135,38 +126,19 @@ export function SignatureEditor({ signature, org, assetsBaseUrl }: Props) {
   );
 
   const previewPanel = (
-    <Card className="shadow-sm">
+    <Card className="shadow-sm ring-1 ring-border/50 transition-shadow hover:shadow-md">
       <CardHeader className="py-3">
         <CardTitle className="text-sm">Live preview</CardTitle>
+        <p className="text-muted-foreground text-xs">Sample contact data for preview only.</p>
       </CardHeader>
-      <CardContent className="flex flex-col gap-6 pt-0">
+      <CardContent className="pt-0">
         <SignatureHtmlPreview
           org={org}
-          member={member}
+          member={SAMPLE_MEMBER}
           templateId={document.templateId}
           targetPlatform={document.targetPlatform}
           assetsBaseUrl={assetsBaseUrl}
           document={document}
-        />
-        <SignatureCopyPanel
-          targetPlatform={document.targetPlatform}
-          onPlatformChange={(targetPlatform) => setDocument((d) => ({ ...d, targetPlatform }))}
-          showPlatformSelect={false}
-          downloadBasename={`${signature.slug}-signature`}
-          buildHtml={() => {
-            const fields = contentToFieldValues({ ...member, ...org });
-            return renderSignatureDocument({
-              document,
-              fields,
-              assetsBaseUrl,
-              orgLogoUrl: org.logoUrl,
-              options: { assetsBaseUrl, targetPlatform: document.targetPlatform },
-            });
-          }}
-          plainText={buildPlainTextFromDocument(
-            document,
-            contentToFieldValues({ ...member, ...org }),
-          )}
         />
       </CardContent>
     </Card>
@@ -176,27 +148,17 @@ export function SignatureEditor({ signature, org, assetsBaseUrl }: Props) {
     <>
       <Card className="shadow-sm">
         <CardHeader className="py-3">
-          <CardTitle className="text-sm">Contact fields</CardTitle>
+          <CardTitle className="text-sm">Template</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 pt-0">
-          {(
-            [
-              ["fullName", "Full name"],
-              ["jobTitle", "Job title"],
-              ["email", "Email"],
-              ["phone", "Phone"],
-              ["whatsapp", "WhatsApp"],
-            ] as const
-          ).map(([key, label]) => (
-            <div key={key} className="grid gap-1.5">
-              <Label className="text-xs">{label}</Label>
-              <Input
-                value={member[key]}
-                disabled={pending}
-                onChange={(e) => setMember((m) => ({ ...m, [key]: e.target.value }))}
-              />
-            </div>
-          ))}
+          <p className="text-muted-foreground text-xs leading-relaxed">
+            {template.description}
+            {isDefaultTemplate ? (
+              <span className="mt-2 block font-medium text-primary">
+                This is the active default template for the public generator.
+              </span>
+            ) : null}
+          </p>
           <PlatformSelect
             value={document.targetPlatform}
             onChange={(targetPlatform: TargetPlatform) =>
@@ -226,15 +188,16 @@ export function SignatureEditor({ signature, org, assetsBaseUrl }: Props) {
   return (
     <div className="flex flex-col gap-4">
       <EditorToolbar
-        name={member.fullName || signature.name}
-        slug={signature.slug}
-        publicUrl={publicUrl}
+        name={template.name}
+        slug={template.id}
+        publicUrl=""
         canUndo={canUndo}
         canRedo={canRedo}
         pending={pending}
         onUndo={undo}
         onRedo={redo}
         onSave={handleSave}
+        saveLabel="Save template"
       />
 
       <EditorMobileTabs

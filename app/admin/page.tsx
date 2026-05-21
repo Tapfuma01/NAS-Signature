@@ -5,6 +5,7 @@ import { getOrganizationSettings, getSignaturesPaginated } from "@/lib/data";
 import { getAdminSession } from "@/lib/auth/session";
 import { organizationRowToOrgBrand } from "@/types/org-brand";
 import { DEFAULT_TEMPLATE_ID } from "@/lib/templates";
+import { loadAllTemplates } from "@/lib/templates/store";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -21,12 +22,14 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
   const pageSize = Math.min(50, Math.max(10, Number(params.pageSize) || 25));
   const q = (params.q ?? "").trim();
 
-  const [paginated, organizationSettings, publicBaseUrl, session] = await Promise.all([
+  const [paginated, organizationSettings, publicBaseUrl, session, templates] = await Promise.all([
     getSignaturesPaginated({ page, pageSize, search: q }),
     getOrganizationSettings(),
     getPublicAppUrl(),
     getAdminSession(),
+    loadAllTemplates(),
   ]);
+  const templatesById = Object.fromEntries(templates.map((t) => [t.id, t]));
 
   const orgBrand = organizationRowToOrgBrand(organizationSettings);
   const role = session?.role ?? "viewer";
@@ -44,6 +47,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
           templateId: organizationSettings.default_template_id ?? DEFAULT_TEMPLATE_ID,
         }}
         publicBaseUrl={publicBaseUrl}
+        templatesById={templatesById}
         role={role}
       />
     </Suspense>

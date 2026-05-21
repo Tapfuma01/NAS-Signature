@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { PublicSignatureClient } from "@/components/public-signature-client";
 import { getPublicAppUrl } from "@/lib/app-url";
 import { getSignatureBySlug } from "@/lib/data";
+import { getTemplateByIdAsync } from "@/lib/templates/store";
 import { signatureRowToFormState } from "@/lib/signature-map";
 import { organizationRowToOrgBrand } from "@/types/org-brand";
 import type { Metadata } from "next";
@@ -34,7 +35,10 @@ export default async function PublicSignaturePage({
 
   const org = organizationRowToOrgBrand(data.organization);
   const member = signatureRowToFormState(data.signature);
-  const assetsBaseUrl = await getPublicAppUrl();
+  const [assetsBaseUrl, template] = await Promise.all([
+    getPublicAppUrl(),
+    getTemplateByIdAsync(data.signature.template_id),
+  ]);
 
   return (
     <div className="bg-muted/30 min-h-screen px-4 py-12">
@@ -53,9 +57,9 @@ export default async function PublicSignaturePage({
           org={org}
           member={member}
           assetsBaseUrl={assetsBaseUrl}
+          template={template}
           signatureRow={{
             template_id: data.signature.template_id,
-            document: data.signature.document,
             target_platform: data.signature.target_platform,
             slug: data.signature.slug,
           }}

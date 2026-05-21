@@ -9,6 +9,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { signatureRowToFormState } from "@/lib/signature-map";
+import type { SignatureTemplateDefinition } from "@/lib/templates/types";
 import type { OrgBrand } from "@/types/org-brand";
 import type { SignatureRow } from "@/types/signature-row";
 
@@ -17,9 +18,10 @@ type Props = {
   onClose: () => void;
   org: OrgBrand;
   publicBaseUrl: string;
+  templatesById: Record<string, SignatureTemplateDefinition>;
 };
 
-export function SignaturePreviewSheet({ row, onClose, org, publicBaseUrl }: Props) {
+export function SignaturePreviewSheet({ row, onClose, org, publicBaseUrl, templatesById }: Props) {
   return (
     <Sheet open={!!row} onOpenChange={(open) => !open && onClose()}>
       <SheetContent side="right" className="w-full sm:max-w-lg">
@@ -33,6 +35,7 @@ export function SignaturePreviewSheet({ row, onClose, org, publicBaseUrl }: Prop
               org={org}
               member={signatureRowToFormState(row)}
               templateId={row.template_id}
+              template={templatesById[row.template_id]}
               targetPlatform={row.target_platform}
               assetsBaseUrl={publicBaseUrl}
               storedRow={row}

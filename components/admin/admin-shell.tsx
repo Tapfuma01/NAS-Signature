@@ -50,6 +50,7 @@ const NAV: {
   adminOnly?: boolean;
 }[] = [
   { href: "/admin", label: "Signatures", icon: Users, exact: true },
+  { href: "/admin/templates", label: "Templates", icon: LayoutTemplate, adminOnly: true },
   { href: "/admin/settings", label: "Organization", icon: Building2, adminOnly: true },
 ];
 
@@ -58,17 +59,19 @@ function isAuthRoute(pathname: string) {
 }
 
 function Breadcrumb({ pathname }: { pathname: string }) {
-  const editMatch = pathname.match(/^\/admin\/signatures\/([^/]+)\/edit$/);
-  if (!editMatch) return null;
-  return (
-    <nav className="text-muted-foreground mb-4 flex items-center gap-2 text-sm">
-      <Link href="/admin" className="hover:text-foreground">
-        Signatures
-      </Link>
-      <span aria-hidden>/</span>
-      <span className="text-foreground font-medium">Design</span>
-    </nav>
-  );
+  const templateMatch = pathname.match(/^\/admin\/templates\/([^/]+)\/edit$/);
+  if (templateMatch) {
+    return (
+      <nav className="text-muted-foreground mb-4 flex items-center gap-2 text-sm">
+        <Link href="/admin/templates" className="hover:text-foreground">
+          Templates
+        </Link>
+        <span aria-hidden>/</span>
+        <span className="text-foreground font-medium">Edit design</span>
+      </nav>
+    );
+  }
+  return null;
 }
 
 export function AdminShell({ children, role, authEnabled }: Props) {

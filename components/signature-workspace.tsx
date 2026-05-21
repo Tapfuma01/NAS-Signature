@@ -4,29 +4,29 @@ import Image from "next/image";
 import { useState } from "react";
 import { DetailsForm } from "@/components/details-form";
 import { SignatureCopyPanel } from "@/components/signature-copy-panel";
-import { TemplatePicker } from "@/components/template-picker";
 import { TemplateWrapper } from "@/components/TemplateWrapper";
-import { buildPlainTextSignature, buildSignatureHtml } from "@/components/SignatureTemplate";
+import { buildPlainTextSignature } from "@/components/SignatureTemplate";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { getExportAssetsBaseUrl } from "@/lib/export-base-url";
-import { DEFAULT_TEMPLATE_ID } from "@/lib/templates";
+import { renderMemberSignatureHtml } from "@/lib/signature-render/render-member";
+import type { SignatureTemplateDefinition } from "@/lib/templates/types";
 import type { OrgBrand } from "@/types/org-brand";
 import type { TargetPlatform } from "@/types/signature-document";
 import { emptySignatureForm, type SignatureFormState } from "@/types/signature";
 
 type Props = {
   org: OrgBrand;
-  defaultTemplateId?: string;
+  template: SignatureTemplateDefinition;
   defaultTargetPlatform?: TargetPlatform;
 };
 
 export function SignatureWorkspace({
   org,
-  defaultTemplateId = DEFAULT_TEMPLATE_ID,
+  template,
   defaultTargetPlatform = "generic",
 }: Props) {
   const [form, setForm] = useState<SignatureFormState>(emptySignatureForm);
-  const [templateId, setTemplateId] = useState(defaultTemplateId);
+  const templateId = template.id;
   const [targetPlatform, setTargetPlatform] = useState<TargetPlatform>(defaultTargetPlatform);
   const content = { ...form, ...org };
 
@@ -63,16 +63,17 @@ export function SignatureWorkspace({
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-5 py-8 md:px-8 lg:flex-row lg:gap-10">
         <section className="flex flex-1 flex-col gap-6 lg:max-w-md">
           <DetailsForm value={form} onChange={setForm} />
-          <div>
-            <p className="safari-section-eyebrow mb-3 text-xs md:text-sm">Choose a template</p>
-            <TemplatePicker value={templateId} onChange={setTemplateId} org={org} />
-          </div>
+          <p className="text-muted-foreground text-xs leading-relaxed">
+            Your company signature uses the <span className="font-medium text-foreground">{template.name}</span> layout.
+            Enter your details below, then copy or download your signature.
+          </p>
         </section>
         <section className="flex-1 lg:min-w-0">
           <TemplateWrapper
             org={org}
             member={form}
             templateId={templateId}
+            template={template}
             targetPlatform={targetPlatform}
             assetsBaseUrl={assetsBaseUrl}
           />
@@ -83,11 +84,13 @@ export function SignatureWorkspace({
               disabled={!form.fullName.trim()}
               downloadBasename="signature-preview"
               buildHtml={() =>
-                buildSignatureHtml({
-                  ...content,
+                renderMemberSignatureHtml({
+                  org,
+                  member: form,
                   assetsBaseUrl,
                   templateId,
-                  renderPlatform: targetPlatform,
+                  template,
+                  targetPlatform,
                 })
               }
               plainText={buildPlainTextSignature(content)}

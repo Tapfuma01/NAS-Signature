@@ -172,7 +172,10 @@ export function OrganizationSettingsForm({
                 <AccordionTrigger>Defaults</AccordionTrigger>
                 <AccordionContent className="grid gap-4 pt-2">
                   <div className="grid gap-2">
-                    <Label>Default template</Label>
+                    <Label>Active company template</Label>
+                    <p className="text-muted-foreground text-xs">
+                      Only this template is shown on the public generator. Staff cannot pick other layouts.
+                    </p>
                     <TemplatePicker
                       value={orgForm.defaultTemplateId}
                       onChange={(defaultTemplateId) => setOrgForm((s) => ({ ...s, defaultTemplateId }))}

@@ -1,3 +1,5 @@
+import type { BlockStyle } from "@/types/block-style";
+
 /** Target email client for export tuning. */
 export type TargetPlatform =
   | "outlook_desktop"
@@ -22,22 +24,44 @@ export type SignatureTheme = {
   borderColor: string;
 };
 
+type BlockBase = { id: string; style?: BlockStyle };
+
 export type SignatureBlock =
-  | { id: string; type: "logo"; src: string; width: number; height: number; align: "left" | "center" }
-  | { id: string; type: "heading"; text: string; level: "company" | "name" | "title" }
-  | {
-      id: string;
+  | (BlockBase & {
+      type: "logo";
+      src: string;
+      width: number;
+      height: number;
+      align: "left" | "center";
+    })
+  | (BlockBase & { type: "heading"; text: string; level: "company" | "name" | "title" })
+  | (BlockBase & {
       type: "contact_row";
       label: string;
       valueField: "phone" | "email" | "whatsapp" | "custom";
       customValue?: string;
-    }
-  | { id: string; type: "divider"; variant?: "accent" | "line" }
-  | { id: string; type: "social"; items: { network: string; url: string }[] }
-  | { id: string; type: "footer_link"; label: string; url: string }
-  | { id: string; type: "spacer"; height: number }
-  | { id: string; type: "banner"; src: string; href?: string; width?: number; height?: number }
-  | { id: string; type: "disclaimer"; text: string };
+    })
+  | (BlockBase & {
+      type: "divider";
+      variant?: "accent" | "line";
+      /** Override bar/line color (hex). Falls back to theme primary/border. */
+      color?: string;
+      /** Bar/line thickness in px (1–24). Default: 3 accent, 1 line. */
+      thickness?: number;
+      /** full = canvas width, short = 80px preset, or explicit width in px. */
+      width?: "full" | "short" | number;
+    })
+  | (BlockBase & { type: "social"; items: { network: string; url: string }[] })
+  | (BlockBase & { type: "footer_link"; label: string; url: string })
+  | (BlockBase & { type: "spacer"; height: number })
+  | (BlockBase & {
+      type: "banner";
+      src: string;
+      href?: string;
+      width?: number;
+      height?: number;
+    })
+  | (BlockBase & { type: "disclaimer"; text: string });
 
 export type SignatureDocument = {
   version: 1;

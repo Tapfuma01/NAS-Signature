@@ -139,3 +139,9 @@ export const SIGNATURE_TEMPLATES: SignatureTemplateDefinition[] = [
 ];
 
 export const DEFAULT_TEMPLATE_ID = "corporate-classic";
+
+export function getTemplateById(id: string): SignatureTemplateDefinition {
+  const normalized =
+    !id || id === "default" ? DEFAULT_TEMPLATE_ID : id;
+  return SIGNATURE_TEMPLATES.find((t) => t.id === normalized) ?? SIGNATURE_TEMPLATES[0]!;
+}

@@ -57,9 +57,11 @@ function SortableRow({
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
-        "flex items-center gap-1 rounded-md border bg-card px-1 py-1 text-sm",
-        selected ? "border-primary ring-1 ring-primary/30" : "border-border",
-        isDragging && "opacity-60 shadow-md",
+        "group flex items-center gap-1 rounded-lg border bg-card px-1 py-1 text-sm transition-all duration-150",
+        selected
+          ? "border-primary bg-primary/5 shadow-sm ring-2 ring-primary/20"
+          : "border-border hover:border-primary/40 hover:bg-muted/40",
+        isDragging && "scale-[1.02] opacity-80 shadow-lg ring-2 ring-primary/30",
       )}
     >
       <button

@@ -16,6 +16,7 @@ type Props = {
   onUndo: () => void;
   onRedo: () => void;
   onSave: () => void;
+  saveLabel?: string;
 };
 
 export function EditorToolbar({
@@ -28,26 +29,29 @@ export function EditorToolbar({
   onUndo,
   onRedo,
   onSave,
+  saveLabel = "Save",
 }: Props) {
   return (
     <div className="bg-card flex flex-col gap-3 rounded-lg border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="secondary">Design</Badge>
+          <Badge variant="secondary">Template</Badge>
           <code className="text-muted-foreground text-xs">/{slug}</code>
         </div>
         <h1 className="font-heading mt-1 truncate text-lg font-semibold tracking-tight">{name}</h1>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <Link
-          href={publicUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
-        >
-          <ExternalLink className="size-4" />
-          Public page
-        </Link>
+        {publicUrl ? (
+          <Link
+            href={publicUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+          >
+            <ExternalLink className="size-4" />
+            Public page
+          </Link>
+        ) : null}
         <Button type="button" variant="outline" size="sm" disabled={!canUndo || pending} onClick={onUndo}>
           <Undo2 className="size-4" />
           Undo
@@ -58,7 +62,7 @@ export function EditorToolbar({
         </Button>
         <Button type="button" size="sm" disabled={pending} onClick={onSave}>
           <Save className="size-4" />
-          Save
+          {saveLabel}
         </Button>
       </div>
     </div>

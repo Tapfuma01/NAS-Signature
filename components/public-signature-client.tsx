@@ -2,8 +2,9 @@
 
 import { SignatureCopyPanel } from "@/components/signature-copy-panel";
 import { TemplateWrapper } from "@/components/TemplateWrapper";
-import { buildPlainTextSignature, buildSignatureHtml } from "@/components/SignatureTemplate";
-import { normalizeTemplateId } from "@/lib/templates";
+import { buildPlainTextSignature } from "@/components/SignatureTemplate";
+import { renderMemberSignatureHtml } from "@/lib/signature-render/render-member";
+import type { SignatureTemplateDefinition } from "@/lib/templates/types";
 import type { OrgBrand } from "@/types/org-brand";
 import type { TargetPlatform } from "@/types/signature-document";
 import type { SignatureFormState } from "@/types/signature";
@@ -14,14 +15,21 @@ type Props = {
   org: OrgBrand;
   member: SignatureFormState;
   assetsBaseUrl: string;
-  signatureRow: Pick<SignatureRow, "template_id" | "document" | "target_platform" | "slug">;
+  template: SignatureTemplateDefinition;
+  signatureRow: Pick<SignatureRow, "template_id" | "target_platform" | "slug">;
 };
 
-export function PublicSignatureClient({ org, member, assetsBaseUrl, signatureRow }: Props) {
+export function PublicSignatureClient({
+  org,
+  member,
+  assetsBaseUrl,
+  template,
+  signatureRow,
+}: Props) {
   const [targetPlatform, setTargetPlatform] = useState<TargetPlatform>(
     signatureRow.target_platform ?? "generic",
   );
-  const templateId = normalizeTemplateId(signatureRow.template_id);
+  const templateId = template.id;
   const content = { ...member, ...org };
 
   return (
@@ -30,6 +38,7 @@ export function PublicSignatureClient({ org, member, assetsBaseUrl, signatureRow
         org={org}
         member={member}
         templateId={templateId}
+        template={template}
         targetPlatform={targetPlatform}
         assetsBaseUrl={assetsBaseUrl}
         storedRow={signatureRow}
@@ -41,11 +50,14 @@ export function PublicSignatureClient({ org, member, assetsBaseUrl, signatureRow
         disabled={!member.fullName.trim()}
         downloadBasename={`${signatureRow.slug}-signature`}
         buildHtml={() =>
-          buildSignatureHtml({
-            ...content,
+          renderMemberSignatureHtml({
+            org,
+            member,
             assetsBaseUrl,
             templateId,
-            renderPlatform: targetPlatform,
+            template,
+            targetPlatform,
+            row: signatureRow,
           })
         }
         plainText={buildPlainTextSignature(content)}

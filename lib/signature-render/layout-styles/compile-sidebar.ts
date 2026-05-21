@@ -1,3 +1,4 @@
+import { applyBlockStyle, getBlockStyle } from "@/lib/signature-render/block-style";
 import {
   renderContactRowsHtml,
   renderFooterRow,
@@ -55,7 +56,11 @@ export function compileSidebarLayout(blocks: SignatureBlock[], ctx: StyleCompile
   const rightHtml = renderRightColumn(rightBlocks, ctx);
 
   const logoCell = logoBlock
-    ? `<td width="130" valign="top" style="padding:0 16px 0 0;vertical-align:top;">${logoHtml}</td>`
+    ? (() => {
+        const logoStyle = getBlockStyle(logoBlock);
+        const cellStyle = applyBlockStyle("padding:0 16px 0 0;vertical-align:top;", logoStyle);
+        return `<td width="130" valign="top" style="${cellStyle}">${logoHtml}</td>`;
+      })()
     : "";
 
   return `<tr>

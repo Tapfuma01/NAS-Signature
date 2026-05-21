@@ -1,31 +1,18 @@
-import { notFound } from "next/navigation";
-import { SignatureEditor } from "@/components/editor/signature-editor";
-import { getPublicAppUrl } from "@/lib/app-url";
-import { getOrganizationSettings, getSignatureById } from "@/lib/data";
-import { organizationRowToOrgBrand } from "@/types/org-brand";
-import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { getSignatureById } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Edit signature design",
-};
-
-export default async function EditSignaturePage({
+/** Per-signature layout editing is deprecated — design lives on global templates. */
+export default async function EditSignatureRedirectPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [signature, organization, assetsBaseUrl] = await Promise.all([
-    getSignatureById(id),
-    getOrganizationSettings(),
-    getPublicAppUrl(),
-  ]);
-
-  if (!signature) notFound();
-
-  const org = organizationRowToOrgBrand(organization);
-
-  return <SignatureEditor signature={signature} org={org} assetsBaseUrl={assetsBaseUrl} />;
+  const signature = await getSignatureById(id);
+  if (!signature) {
+    redirect("/admin");
+  }
+  redirect(`/admin/templates/${signature.template_id}/edit`);
 }

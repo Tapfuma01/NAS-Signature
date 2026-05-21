@@ -75,6 +75,7 @@ type Props = {
   orgBrand: OrgBrand;
   organizationDefaults: { templateId: string };
   publicBaseUrl: string;
+  templatesById: Record<string, import("@/lib/templates/types").SignatureTemplateDefinition>;
   role: AdminRole;
 };
 
@@ -87,6 +88,7 @@ export function SignaturesPanel({
   orgBrand,
   organizationDefaults,
   publicBaseUrl,
+  templatesById,
   role,
 }: Props) {
   const router = useRouter();
@@ -540,6 +542,7 @@ export function SignaturesPanel({
         onClose={() => setPreviewRow(null)}
         org={orgBrand}
         publicBaseUrl={publicBaseUrl}
+        templatesById={templatesById}
       />
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
