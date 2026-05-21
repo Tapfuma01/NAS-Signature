@@ -3,8 +3,11 @@ import { parseStoredDocument } from "@/lib/signature-resolve";
 import type { OrganizationSettings } from "@/types/organization-settings";
 import type { SignatureRow } from "@/types/signature-row";
 
-function mapSignatureRow(row: Record<string, unknown>): SignatureRow {
-  return {
+function mapSignatureRow(
+  row: Record<string, unknown>,
+  options?: { includeEditToken?: boolean },
+): SignatureRow {
+  const mapped: SignatureRow = {
     id: String(row.id),
     name: String(row.name),
     job_title: String(row.job_title),
@@ -19,6 +22,10 @@ function mapSignatureRow(row: Record<string, unknown>): SignatureRow {
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
   };
+  if (options?.includeEditToken && row.edit_token != null) {
+    mapped.edit_token = String(row.edit_token);
+  }
+  return mapped;
 }
 
 export async function getOrganizationSettings(): Promise<OrganizationSettings> {
@@ -67,7 +74,7 @@ export async function getAllSignatures(): Promise<SignatureRow[]> {
     FROM signatures
     ORDER BY name ASC
   `) as Record<string, unknown>[];
-  return rows.map(mapSignatureRow);
+  return rows.map((row) => mapSignatureRow(row));
 }
 
 export type SignaturesPageResult = {
@@ -116,7 +123,7 @@ export async function getSignaturesPaginated(input: {
       LIMIT ${pageSize} OFFSET ${offset}
     `) as Record<string, unknown>[];
     return {
-      rows: rows.map(mapSignatureRow),
+      rows: rows.map((row) => mapSignatureRow(row)),
       total: countRows[0]?.total ?? 0,
       page,
       pageSize,
@@ -146,7 +153,7 @@ export async function getSignaturesPaginated(input: {
     LIMIT ${pageSize} OFFSET ${offset}
   `) as Record<string, unknown>[];
   return {
-    rows: rows.map(mapSignatureRow),
+    rows: rows.map((row) => mapSignatureRow(row)),
     total: countRows[0]?.total ?? 0,
     page,
     pageSize,
@@ -168,6 +175,7 @@ export async function getSignatureById(id: string): Promise<SignatureRow | null>
       target_platform,
       document,
       slug,
+      edit_token,
       created_at::text AS created_at,
       updated_at::text AS updated_at
     FROM signatures
@@ -175,7 +183,7 @@ export async function getSignatureById(id: string): Promise<SignatureRow | null>
     LIMIT 1
   `) as Record<string, unknown>[];
   if (!rows[0]) return null;
-  return mapSignatureRow(rows[0]);
+  return mapSignatureRow(rows[0], { includeEditToken: true });
 }
 
 export async function getSignatureBySlug(

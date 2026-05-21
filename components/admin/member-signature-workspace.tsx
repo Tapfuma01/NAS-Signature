@@ -8,6 +8,7 @@ import {
   deleteSignature,
   updateSignature,
 } from "@/app/actions/signatures";
+import { sendSignatureInviteEmailAction } from "@/app/actions/email";
 import { AvatarUploadField } from "@/components/admin/avatar-upload-field";
 import { DetailsForm } from "@/components/details-form";
 import { PlatformSelect } from "@/components/platform-select";
@@ -42,7 +43,7 @@ import type { SignatureTemplateDefinition } from "@/lib/templates/types";
 import type { MemberForm } from "@/types/admin/member-form";
 import type { OrgBrand } from "@/types/org-brand";
 import type { SignatureFormState } from "@/types/signature";
-import { ArrowLeft, Copy, Loader2, Trash2 } from "lucide-react";
+import { ArrowLeft, Copy, Loader2, Mail, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 function memberToFormState(form: MemberForm): SignatureFormState {
@@ -84,6 +85,7 @@ export function MemberSignatureWorkspace({
 }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [emailPending, startEmailTransition] = useTransition();
   const [form, setForm] = useState<MemberForm>(initialForm);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const initialRef = useRef(initialForm);
@@ -136,6 +138,19 @@ export function MemberSignatureWorkspace({
     } catch {
       toast.error("Could not copy to clipboard");
     }
+  }
+
+  function sendEmailInvite() {
+    const signatureId = form.id;
+    if (!signatureId || readOnly) return;
+    startEmailTransition(async () => {
+      const res = await sendSignatureInviteEmailAction({ signatureId });
+      if (res.ok) {
+        toast.success(`Email sent to ${form.email}`);
+      } else {
+        toast.error(res.message);
+      }
+    });
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -345,16 +360,31 @@ export function MemberSignatureWorkspace({
                 Public install link
               </p>
               <p className="break-all font-mono text-sm">{publicUrl}</p>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="mt-3"
-                onClick={copyPublicLink}
-              >
-                <Copy className="size-4" />
-                Copy link
-              </Button>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  onClick={sendEmailInvite}
+                  disabled={readOnly || emailPending || !form.email.trim()}
+                >
+                  {emailPending ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Mail className="size-4" />
+                  )}
+                  Email signature
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={copyPublicLink}
+                >
+                  <Copy className="size-4" />
+                  Copy link
+                </Button>
+              </div>
             </div>
           ) : null}
         </section>

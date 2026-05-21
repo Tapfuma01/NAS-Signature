@@ -12,6 +12,8 @@ export type SignatureRow = {
   target_platform: TargetPlatform;
   document: SignatureDocument | null;
   slug: string;
+  /** Present only for admin/internal queries — never expose on anonymous slug reads. */
+  edit_token?: string;
   created_at: string;
   updated_at: string;
 };

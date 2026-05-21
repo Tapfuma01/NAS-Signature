@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useTransition } from "react";
+import { sendSignatureInviteEmailAction } from "@/app/actions/email";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,12 +24,15 @@ import {
   Copy,
   Eye,
   LayoutTemplate,
+  Loader2,
   Mail,
   MessageCircle,
   MoreHorizontal,
   Pencil,
+  Send,
   Trash2,
 } from "lucide-react";
+import { toast } from "sonner";
 
 type Props = {
   row: SignatureRow;
@@ -48,9 +53,21 @@ export function SignatureRowMenu({
   onCopyLink,
   onDelete,
 }: Props) {
+  const [emailPending, startEmailTransition] = useTransition();
   const canEdit = canMutateSignatures(role);
   const canDesign = canUseDesignEditor(role);
   const shareMessage = buildInstallShareMessage(row.name, publicUrl);
+
+  function sendBrevoInvite() {
+    startEmailTransition(async () => {
+      const res = await sendSignatureInviteEmailAction({ signatureId: row.id });
+      if (res.ok) {
+        toast.success(`Email sent to ${row.email}`);
+      } else {
+        toast.error(res.message);
+      }
+    });
+  }
 
   return (
     <DropdownMenu>
@@ -99,9 +116,15 @@ export function SignatureRowMenu({
             <MessageCircle className="size-4" />
             Send via WhatsApp
           </DropdownMenuItem>
+          {canEdit ? (
+            <DropdownMenuItem onClick={sendBrevoInvite} disabled={emailPending}>
+              {emailPending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+              Email signature
+            </DropdownMenuItem>
+          ) : null}
           <DropdownMenuItem onClick={() => { window.location.href = mailtoShareUrl(shareMessage); }}>
             <Mail className="size-4" />
-            Send via email
+            Open in mail app
           </DropdownMenuItem>
         </DropdownMenuGroup>
         {canEdit ? (

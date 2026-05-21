@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     default: "Email signature | C4 Photo Safaris",
     template: "%s | C4 Photo Safaris",
   },
-  description: "Internal email signature generator for C4 Photo Safaris.",
+  description: "Sign in to manage C4 Photo Safaris email signatures.",
   icons: {
     icon: [{ url: "/c4-favicon.jpg", type: "image/jpeg" }],
     shortcut: "/c4-favicon.jpg",

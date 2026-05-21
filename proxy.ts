@@ -25,7 +25,7 @@ export function proxy(request: NextRequest) {
   const session = verifySessionToken(token);
 
   if (!session) {
-    const login = new URL("/admin/login", request.url);
+    const login = new URL("/", request.url);
     login.searchParams.set("next", pathname);
     return NextResponse.redirect(login);
   }

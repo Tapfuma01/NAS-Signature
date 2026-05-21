@@ -49,7 +49,7 @@ export async function adminLogin(input: z.infer<typeof loginInput>): Promise<Aut
 export async function adminLogout(): Promise<void> {
   const jar = await cookies();
   jar.delete(ADMIN_SESSION_COOKIE);
-  redirect("/admin/login");
+  redirect("/");
 }
 
 export async function getAdminAuthEnabled(): Promise<boolean> {

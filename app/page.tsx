@@ -1,35 +1,32 @@
-import { SignatureWorkspace } from "@/components/signature-workspace";
-import { DEFAULT_TEMPLATE_ID, getTemplateById } from "@/lib/templates";
-import { getTemplateByIdAsync } from "@/lib/templates/store";
-import { DEFAULT_ORG_BRAND, organizationRowToOrgBrand } from "@/types/org-brand";
-import type { TargetPlatform } from "@/types/signature-document";
+import { AdminLoginForm } from "@/components/admin/admin-login-form";
+import { getAdminSession } from "@/lib/auth/session";
+import { isAdminAuthEnabled } from "@/lib/auth/session-token";
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
-export default async function Home() {
-  let org = DEFAULT_ORG_BRAND;
-  let defaultTemplateId = DEFAULT_TEMPLATE_ID;
-  let defaultTargetPlatform: TargetPlatform = "generic";
-  let template = getTemplateById(DEFAULT_TEMPLATE_ID);
+export const metadata: Metadata = {
+  title: "Sign in",
+};
 
-  if (process.env.DATABASE_URL) {
-    try {
-      const { getOrganizationSettings } = await import("@/lib/data");
-      const settings = await getOrganizationSettings();
-      org = organizationRowToOrgBrand(settings);
-      defaultTemplateId = settings.default_template_id;
-      defaultTargetPlatform = settings.default_target_platform;
-      template = await getTemplateByIdAsync(defaultTemplateId);
-    } catch {
-      org = DEFAULT_ORG_BRAND;
-    }
+type SearchParams = Promise<{ next?: string }>;
+
+export default async function Home({ searchParams }: { searchParams: SearchParams }) {
+  if (!isAdminAuthEnabled()) {
+    redirect("/admin");
   }
 
+  const session = await getAdminSession();
+  if (session) {
+    const params = await searchParams;
+    redirect(params.next?.startsWith("/admin") ? params.next : "/admin");
+  }
+
+  const params = await searchParams;
+  const next = params.next?.startsWith("/admin") ? params.next : "/admin";
+
   return (
-    <div className="flex min-h-screen flex-col">
-      <SignatureWorkspace
-        org={org}
-        template={template}
-        defaultTargetPlatform={defaultTargetPlatform}
-      />
+    <div className="flex min-h-screen items-center justify-center p-6">
+      <AdminLoginForm next={next} />
     </div>
   );
 }
