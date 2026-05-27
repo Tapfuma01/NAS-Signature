@@ -2,6 +2,7 @@
 
 import { memo, useMemo } from "react";
 import { renderSignatureDocument } from "@/lib/signature-render/render-document";
+import { wrapSignaturePreviewDocument } from "@/lib/signature-render/signature-font-faces";
 import { resolveSignatureDocument } from "@/lib/signature-resolve";
 import type { OrgBrand } from "@/types/org-brand";
 import type { SignatureDocument, TargetPlatform } from "@/types/signature-document";
@@ -82,7 +83,7 @@ function SignatureHtmlPreviewInner({
       >
         <iframe
           title="Signature preview"
-          srcDoc={`<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#fff;">${html}</body></html>`}
+          srcDoc={wrapSignaturePreviewDocument(html, assetsBaseUrl)}
           className="w-full border-0"
           style={{ minHeight: compact ? 200 : 280 }}
           sandbox=""

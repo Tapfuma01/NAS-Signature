@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { renderSignatureDocument } from "@/lib/signature-render/render-document";
+import { wrapSignaturePreviewDocument } from "@/lib/signature-render/signature-font-faces";
 import { buildDocumentFromTemplate, getTemplateById } from "@/lib/templates";
 import { DEFAULT_ORG_BRAND } from "@/types/org-brand";
 import type { OrgBrand } from "@/types/org-brand";
@@ -70,7 +71,7 @@ export function TemplateThumbnail({ templateId, org = DEFAULT_ORG_BRAND, classNa
         <iframe
           title=""
           tabIndex={-1}
-          srcDoc={`<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#fff;">${html}</body></html>`}
+          srcDoc={wrapSignaturePreviewDocument(html)}
           className="w-full border-0"
           style={{ minHeight: 200, pointerEvents: "none" }}
           sandbox=""

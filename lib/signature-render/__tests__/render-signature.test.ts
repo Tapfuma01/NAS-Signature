@@ -105,10 +105,10 @@ describe("renderSignatureDocument", () => {
     }
   });
 
-  it("getRenderProfile returns expected fonts for outlook desktop", () => {
+  it("getRenderProfile returns Aptos stack for outlook desktop", () => {
     const profile = getRenderProfile("outlook_desktop");
-    expect(profile.bodyFont).toBe("Arial, Helvetica, sans-serif");
-    expect(profile.headingFont).not.toContain("Montserrat");
+    expect(profile.bodyFont).toBe("Aptos, 'Segoe UI', Arial, Helvetica, sans-serif");
+    expect(profile.headingFont).toContain("Aptos");
     expect(profile.strictOutlook).toBe(true);
   });
 

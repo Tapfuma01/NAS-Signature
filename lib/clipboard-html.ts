@@ -14,7 +14,7 @@ export function wrapHtmlForClipboard(html: string, platform: TargetPlatform): st
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!--[if mso]><style type="text/css">body, table, td { font-family: Arial, Helvetica, sans-serif; }</style><![endif]-->
+<!--[if mso]><style type="text/css">body, table, td { font-family: Aptos, 'Segoe UI', Arial, Helvetica, sans-serif; }</style><![endif]-->
 </head>
 <body style="margin:0;padding:0;">
 <!--StartFragment-->

@@ -1,8 +1,11 @@
 import { escapeHtml } from "@/lib/escape-html";
 import { resolveExportAssetsBaseUrl, toAbsoluteHttpsImageUrl } from "@/lib/signature-render/image-url";
 
-export const BODY_FONT_SAFE = "Arial, Helvetica, sans-serif";
-export const HEADING_FONT_LEGACY = "Montserrat, Arial, Helvetica, sans-serif";
+import { SIGNATURE_FONT_STACK } from "@/lib/signature-render/signature-font-faces";
+
+/** Email-safe stack — Aptos when installed (Office 365 / Windows), then system fallbacks. */
+export const BODY_FONT_SAFE = SIGNATURE_FONT_STACK;
+export const HEADING_FONT_LEGACY = SIGNATURE_FONT_STACK;
 
 export function telHref(phone: string): string | null {
   const trimmed = phone.trim();
