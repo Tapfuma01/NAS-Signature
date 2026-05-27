@@ -40,6 +40,7 @@ export type SignatureBlock =
       label: string;
       valueField: "phone" | "email" | "whatsapp" | "custom";
       customValue?: string;
+      customInputType?: "text" | "tel" | "email" | "url";
     })
   | (BlockBase & {
       type: "divider";

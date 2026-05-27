@@ -8,6 +8,7 @@ import { DEFAULT_ORG_BRAND } from "@/types/org-brand";
 import type { TargetPlatform } from "@/types/signature-document";
 import { TARGET_PLATFORMS } from "@/types/signature-document";
 import { SIGNATURE_TEMPLATES } from "@/lib/templates/catalog";
+import { buildDocumentFromTemplate } from "@/lib/templates";
 
 const SAMPLE = {
   ...DEFAULT_ORG_BRAND,
@@ -16,6 +17,7 @@ const SAMPLE = {
   phone: "+27 11 123 4567",
   email: "jane@c4photosafaris.com",
   whatsapp: "+27 82 123 4567",
+  customFields: {},
   assetsBaseUrl: "https://signatures.example.com",
   templateId: "corporate-classic",
 };
@@ -116,5 +118,88 @@ describe("renderSignatureDocument", () => {
     for (const t of SIGNATURE_TEMPLATES) {
       expect(getLayoutStyleConfig(t.layoutStyle).style).toBe(t.layoutStyle);
     }
+  });
+
+  it("renders member custom contact values with tel links", () => {
+    const fields = contentToFieldValues(SAMPLE);
+    const document = buildDocumentFromTemplate({
+      templateId: "dynamic-mobile",
+      template: {
+        id: "dynamic-mobile",
+        name: "Dynamic Mobile",
+        description: "",
+        category: "Corporate",
+        canvasWidth: 500,
+        layoutStyle: "compact-stack",
+        blocks: [
+          { id: "name", type: "heading", level: "name", text: "Name" },
+          {
+            id: "mobile",
+            type: "contact_row",
+            label: "Mobile",
+            valueField: "custom",
+            customValue: "Call us",
+            customInputType: "tel",
+          },
+        ],
+      },
+      fields,
+      theme: {
+        primaryColor: DEFAULT_ORG_BRAND.primaryColor,
+        accentColor: DEFAULT_ORG_BRAND.accentColor,
+        textColor: DEFAULT_ORG_BRAND.textColor,
+        mutedColor: DEFAULT_ORG_BRAND.mutedColor,
+        borderColor: DEFAULT_ORG_BRAND.borderColor,
+      },
+      assetsBaseUrl: SAMPLE.assetsBaseUrl,
+      orgLogoUrl: "",
+      customFields: { mobile: "+27 11 888 9999" },
+    });
+    const html = normalizeHtml(
+      renderSignatureDocument({ document, fields, assetsBaseUrl: SAMPLE.assetsBaseUrl, orgLogoUrl: "" }),
+    );
+    expect(html).toContain("tel:+27118889999");
+    expect(html).toContain("+27 11 888 9999");
+  });
+
+  it("falls back to template placeholder when custom value is blank", () => {
+    const fields = contentToFieldValues(SAMPLE);
+    const document = buildDocumentFromTemplate({
+      templateId: "dynamic-fallback",
+      template: {
+        id: "dynamic-fallback",
+        name: "Dynamic fallback",
+        description: "",
+        category: "Corporate",
+        canvasWidth: 500,
+        layoutStyle: "compact-stack",
+        blocks: [
+          { id: "name", type: "heading", level: "name", text: "Name" },
+          {
+            id: "mobile",
+            type: "contact_row",
+            label: "Mobile",
+            valueField: "custom",
+            customValue: "Call us",
+            customInputType: "tel",
+          },
+        ],
+      },
+      fields,
+      theme: {
+        primaryColor: DEFAULT_ORG_BRAND.primaryColor,
+        accentColor: DEFAULT_ORG_BRAND.accentColor,
+        textColor: DEFAULT_ORG_BRAND.textColor,
+        mutedColor: DEFAULT_ORG_BRAND.mutedColor,
+        borderColor: DEFAULT_ORG_BRAND.borderColor,
+      },
+      assetsBaseUrl: SAMPLE.assetsBaseUrl,
+      orgLogoUrl: "",
+      customFields: { mobile: "   " },
+    });
+    const html = normalizeHtml(
+      renderSignatureDocument({ document, fields, assetsBaseUrl: SAMPLE.assetsBaseUrl, orgLogoUrl: "" }),
+    );
+    expect(html).toContain("Call us");
   });
 });

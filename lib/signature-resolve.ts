@@ -2,7 +2,6 @@ import { contentToFieldValues } from "@/lib/signature-render/form-to-document";
 import {
   buildDocumentFromTemplate,
   fieldsFromOrgAndForm,
-  hydrateTemplateBlocks,
   normalizeTemplateId,
   themeFromOrgBrand,
 } from "@/lib/templates";
@@ -46,6 +45,7 @@ export function resolveSignatureDocument(input: {
     targetPlatform,
     assetsBaseUrl: input.assetsBaseUrl,
     orgLogoUrl: input.org.logoUrl,
+    customFields: input.member.customFields,
   });
 }
 
@@ -67,6 +67,7 @@ export function documentToFormState(row: SignatureRow): SignatureFormState {
     phone: row.phone,
     email: row.email,
     whatsapp: row.whatsapp ?? "",
+    customFields: row.custom_fields ?? {},
   };
 }
 
@@ -92,5 +93,6 @@ export function buildDocumentForSave(input: {
     targetPlatform: input.targetPlatform,
     assetsBaseUrl: input.assetsBaseUrl,
     orgLogoUrl: input.org.logoUrl,
+    customFields: input.member.customFields,
   });
 }

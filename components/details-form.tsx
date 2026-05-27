@@ -1,14 +1,16 @@
 "use client";
 
 import type { SignatureFormState } from "@/types/signature";
+import type { MemberCustomFieldDef } from "@/lib/templates/custom-fields";
 
 type Props = {
   value: SignatureFormState;
   onChange: (next: SignatureFormState) => void;
+  customFields?: MemberCustomFieldDef[];
   disabled?: boolean;
 };
 
-export function DetailsForm({ value, onChange, disabled }: Props) {
+export function DetailsForm({ value, onChange, customFields = [], disabled }: Props) {
   const patch = (partial: Partial<SignatureFormState>) => {
     onChange({ ...value, ...partial });
   };
@@ -74,6 +76,26 @@ export function DetailsForm({ value, onChange, disabled }: Props) {
             onChange={(e) => patch({ whatsapp: e.target.value })}
           />
         </label>
+        {customFields.map((field) => (
+          <label key={field.blockId} className="grid gap-1.5">
+            <span className="text-sm font-medium text-foreground">{field.label}</span>
+            <input
+              className="font-body rounded-md border border-input bg-background px-3 py-2 text-base text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+              type={field.inputType}
+              placeholder={field.placeholder}
+              value={value.customFields[field.blockId] ?? ""}
+              disabled={disabled}
+              onChange={(e) =>
+                patch({
+                  customFields: {
+                    ...value.customFields,
+                    [field.blockId]: e.target.value,
+                  },
+                })
+              }
+            />
+          </label>
+        ))}
       </div>
     </div>
   );

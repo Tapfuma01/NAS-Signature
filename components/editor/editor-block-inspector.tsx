@@ -151,19 +151,44 @@ export function EditorBlockInspector({
                 <SelectItem value="phone">Phone</SelectItem>
                 <SelectItem value="email">Email</SelectItem>
                 <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                <SelectItem value="custom">Custom text</SelectItem>
+                <SelectItem value="custom">Member field</SelectItem>
               </SelectContent>
             </Select>
           </div>
           {block.valueField === "custom" && (
-            <div className="grid gap-2">
-              <Label>Custom value</Label>
-              <Input
-                value={block.customValue ?? ""}
-                onChange={(e) => onUpdate(id, { customValue: e.target.value })}
-                disabled={disabled}
-              />
-            </div>
+            <>
+              <div className="grid gap-2">
+                <Label>Input type</Label>
+                <Select
+                  value={block.customInputType ?? "text"}
+                  onValueChange={(v) =>
+                    onUpdate(id, { customInputType: v as "text" | "tel" | "email" | "url" })
+                  }
+                  disabled={disabled}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="text">Text</SelectItem>
+                    <SelectItem value="tel">Phone</SelectItem>
+                    <SelectItem value="email">Email</SelectItem>
+                    <SelectItem value="url">URL</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label>Default / placeholder</Label>
+                <Input
+                  value={block.customValue ?? ""}
+                  onChange={(e) => onUpdate(id, { customValue: e.target.value })}
+                  disabled={disabled}
+                />
+                <p className="text-muted-foreground text-xs">
+                  Members fill this in on their profile. This value is used when they leave it blank.
+                </p>
+              </div>
+            </>
           )}
         </>
       )}

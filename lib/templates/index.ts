@@ -50,6 +50,7 @@ export function hydrateTemplateBlocks(
   fields: SignatureFieldValues,
   assetsBaseUrl: string,
   orgLogoUrl: string,
+  customFields?: Record<string, string>,
 ): SignatureBlock[] {
   const logo = resolveLogoUrl(assetsBaseUrl, orgLogoUrl);
   return cloneBlocks(blocks).map((block) => {
@@ -86,6 +87,12 @@ export function hydrateTemplateBlocks(
                 : item.url,
           })),
         };
+      case "contact_row":
+        if (block.valueField !== "custom") return block;
+        return {
+          ...block,
+          customValue: customFields?.[block.id]?.trim() || block.customValue || "",
+        };
       default:
         return block;
     }
@@ -99,6 +106,7 @@ export function buildDocumentFromTemplate(input: {
   targetPlatform?: TargetPlatform;
   assetsBaseUrl: string;
   orgLogoUrl: string;
+  customFields?: Record<string, string>;
   template?: SignatureTemplateDefinition;
 }): SignatureDocument {
   const template =
@@ -109,7 +117,13 @@ export function buildDocumentFromTemplate(input: {
     templateId: template.id,
     targetPlatform: input.targetPlatform ?? "generic",
     canvasWidth: template.canvasWidth,
-    blocks: hydrateTemplateBlocks(template.blocks, input.fields, input.assetsBaseUrl, input.orgLogoUrl),
+    blocks: hydrateTemplateBlocks(
+      template.blocks,
+      input.fields,
+      input.assetsBaseUrl,
+      input.orgLogoUrl,
+      input.customFields,
+    ),
     theme,
   };
 }

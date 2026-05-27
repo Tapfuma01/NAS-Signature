@@ -7,6 +7,7 @@ export type SignatureRow = {
   email: string;
   phone: string;
   whatsapp: string | null;
+  custom_fields: Record<string, string>;
   avatar_url: string | null;
   template_id: string;
   target_platform: TargetPlatform;

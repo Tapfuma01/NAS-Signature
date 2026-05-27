@@ -15,6 +15,7 @@ const publicFieldsSchema = z.object({
   email: z.string().email().max(320),
   phone: z.string().max(80).optional().default(""),
   whatsapp: z.string().max(500).optional().nullable(),
+  customFields: z.record(z.string(), z.string().max(500)).optional().default({}),
 });
 
 export type PublicSignatureActionState = { ok: true } | { ok: false; message: string };
@@ -64,6 +65,7 @@ export async function updateMemberDetailsPublic(
         email = ${v.email},
         phone = ${v.phone},
         whatsapp = ${v.whatsapp ?? null},
+        custom_fields = ${JSON.stringify(v.customFields)}::jsonb,
         document = NULL,
         updated_at = now()
       WHERE slug = ${v.slug}

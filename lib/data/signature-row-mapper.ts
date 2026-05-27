@@ -12,6 +12,15 @@ export function mapSignatureRow(
     email: String(row.email),
     phone: String(row.phone ?? ""),
     whatsapp: row.whatsapp != null ? String(row.whatsapp) : null,
+    custom_fields:
+      row.custom_fields && typeof row.custom_fields === "object" && !Array.isArray(row.custom_fields)
+        ? Object.fromEntries(
+            Object.entries(row.custom_fields as Record<string, unknown>).map(([k, v]) => [
+              k,
+              typeof v === "string" ? v : String(v ?? ""),
+            ]),
+          )
+        : {},
     avatar_url: row.avatar_url != null ? String(row.avatar_url) : null,
     template_id: String(row.template_id),
     target_platform: String(row.target_platform ?? "generic") as SignatureRow["target_platform"],

@@ -33,6 +33,7 @@ const SAMPLE_MEMBER: SignatureFormState = {
   email: "alex@example.com",
   phone: "+27 12 345 6789",
   whatsapp: "+27 82 000 0000",
+  customFields: {},
 };
 
 type Props = {

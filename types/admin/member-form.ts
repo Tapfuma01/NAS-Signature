@@ -9,6 +9,7 @@ export type MemberForm = {
   email: string;
   phone: string;
   whatsapp: string;
+  customFields: Record<string, string>;
   avatarUrl: string;
   templateId: string;
   targetPlatform: TargetPlatform;
@@ -20,6 +21,7 @@ export const emptyMemberForm: MemberForm = {
   email: "",
   phone: "",
   whatsapp: "",
+  customFields: {},
   avatarUrl: "",
   templateId: DEFAULT_TEMPLATE_ID,
   targetPlatform: "generic",

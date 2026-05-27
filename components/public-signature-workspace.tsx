@@ -8,6 +8,7 @@ import { TemplateWrapper } from "@/components/TemplateWrapper";
 import { buildPlainTextSignature } from "@/components/SignatureTemplate";
 import { Button } from "@/components/ui/button";
 import { renderMemberSignatureHtml } from "@/lib/signature-render/render-member";
+import { getMemberCustomFieldDefs } from "@/lib/templates/custom-fields";
 import type { SignatureTemplateDefinition } from "@/lib/templates/types";
 import type { OrgBrand } from "@/types/org-brand";
 import type { TargetPlatform } from "@/types/signature-document";
@@ -41,6 +42,7 @@ export function PublicSignatureWorkspace({
   const [pending, startTransition] = useTransition();
   const templateId = template.id;
   const content = { ...member, ...org };
+  const customFieldDefs = getMemberCustomFieldDefs(template.blocks);
 
   function onSave(e: React.FormEvent) {
     e.preventDefault();
@@ -63,6 +65,7 @@ export function PublicSignatureWorkspace({
         email: member.email,
         phone: member.phone,
         whatsapp: member.whatsapp || null,
+        customFields: member.customFields,
       });
       if (res.ok) {
         toast.success("Details saved");
@@ -81,7 +84,12 @@ export function PublicSignatureWorkspace({
             Update your information below, then save before copying your signature.
           </p>
           <form onSubmit={onSave} className="flex flex-col gap-4">
-            <DetailsForm value={member} onChange={setMember} disabled={pending} />
+            <DetailsForm
+              value={member}
+              onChange={setMember}
+              customFields={customFieldDefs}
+              disabled={pending}
+            />
             <Button type="submit" disabled={pending}>
               {pending ? "Saving…" : "Save details"}
             </Button>

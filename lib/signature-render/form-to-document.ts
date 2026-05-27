@@ -33,5 +33,6 @@ export function formToDocument(input: SignatureContentInput): SignatureDocument 
     targetPlatform: input.targetPlatform ?? "generic",
     assetsBaseUrl: input.assetsBaseUrl,
     orgLogoUrl: input.logoUrl,
+    customFields: input.customFields,
   });
 }

@@ -45,6 +45,7 @@ export default async function EditSignatureMemberPage({
     email: signature.email,
     phone: signature.phone,
     whatsapp: signature.whatsapp ?? "",
+    customFields: signature.custom_fields ?? {},
     avatarUrl: signature.avatar_url ?? "",
     templateId: signature.template_id,
     targetPlatform: signature.target_platform ?? "generic",

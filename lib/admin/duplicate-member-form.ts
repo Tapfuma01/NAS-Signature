@@ -9,6 +9,7 @@ export function duplicateMemberFormFromSignature(source: SignatureRow): MemberFo
     email: source.email,
     phone: source.phone,
     whatsapp: source.whatsapp ?? "",
+    customFields: source.custom_fields ?? {},
     avatarUrl: source.avatar_url ?? "",
     templateId: source.template_id,
     targetPlatform: source.target_platform ?? "generic",

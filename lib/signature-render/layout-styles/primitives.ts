@@ -65,6 +65,19 @@ export function contactValueHtml(
     }
     return `<span style="color:${escapeHtml(mutedColor)};">${escapeHtml(label)}</span>`;
   }
+  if (block.customInputType === "tel") {
+    return linkOrSpan(telHref(raw), trimmed || block.label, textColor);
+  }
+  if (block.customInputType === "email") {
+    if (!trimmed) {
+      return `<span style="color:${escapeHtml(mutedColor)};">${escapeHtml(block.label)}</span>`;
+    }
+    return `<a href="${escapeHtml(`mailto:${trimmed}`)}" style="color:${escapeHtml(textColor)};text-decoration:none;">${escapeHtml(trimmed)}</a>`;
+  }
+  if (block.customInputType === "url") {
+    const href = /^https?:\/\//i.test(trimmed) ? trimmed : trimmed ? `https://${trimmed}` : "";
+    return linkOrSpan(href || null, trimmed || block.label, textColor);
+  }
   return escapeHtml(trimmed || block.label);
 }
 

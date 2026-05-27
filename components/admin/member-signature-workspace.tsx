@@ -38,6 +38,7 @@ import {
 import { getExportAssetsBaseUrl } from "@/lib/export-base-url";
 import { renderMemberSignatureHtml } from "@/lib/signature-render/render-member";
 import { slugifyName } from "@/lib/slug";
+import { getMemberCustomFieldDefs } from "@/lib/templates/custom-fields";
 import { getTemplateById } from "@/lib/templates";
 import type { SignatureTemplateDefinition } from "@/lib/templates/types";
 import type { MemberForm } from "@/types/admin/member-form";
@@ -53,6 +54,7 @@ function memberToFormState(form: MemberForm): SignatureFormState {
     phone: form.phone,
     email: form.email,
     whatsapp: form.whatsapp,
+    customFields: form.customFields,
   };
 }
 
@@ -96,6 +98,7 @@ export function MemberSignatureWorkspace({
 
   const template =
     templatesById[form.templateId] ?? templatesById[defaultTemplateId] ?? getTemplateById(form.templateId);
+  const customFieldDefs = getMemberCustomFieldDefs(template.blocks);
   const templateId = template.id;
   const member = memberToFormState(form);
   const content = { ...member, ...org };
@@ -174,6 +177,7 @@ export function MemberSignatureWorkspace({
           email: form.email,
           phone: form.phone,
           whatsapp: form.whatsapp || null,
+          customFields: form.customFields,
           avatarUrl: form.avatarUrl || null,
           templateId: form.templateId,
           targetPlatform: form.targetPlatform,
@@ -192,6 +196,7 @@ export function MemberSignatureWorkspace({
           email: form.email,
           phone: form.phone,
           whatsapp: form.whatsapp || null,
+          customFields: form.customFields,
           avatarUrl: form.avatarUrl || null,
           templateId: form.templateId,
           targetPlatform: form.targetPlatform,
@@ -281,6 +286,7 @@ export function MemberSignatureWorkspace({
         <section className="flex flex-1 flex-col gap-6 lg:max-w-md">
           <DetailsForm
             value={member}
+            customFields={customFieldDefs}
             disabled={readOnly || pending}
             onChange={(m) =>
               setForm((f) => ({
@@ -290,6 +296,7 @@ export function MemberSignatureWorkspace({
                 phone: m.phone,
                 email: m.email,
                 whatsapp: m.whatsapp,
+                customFields: m.customFields,
               }))
             }
           />

@@ -4,6 +4,7 @@ export type SignatureFormState = {
   phone: string;
   email: string;
   whatsapp: string;
+  customFields: Record<string, string>;
 };
 
 export const emptySignatureForm: SignatureFormState = {
@@ -12,4 +13,5 @@ export const emptySignatureForm: SignatureFormState = {
   phone: "",
   email: "",
   whatsapp: "",
+  customFields: {},
 };

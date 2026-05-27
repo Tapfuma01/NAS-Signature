@@ -8,5 +8,6 @@ export function signatureRowToFormState(row: SignatureRow): SignatureFormState {
     phone: row.phone,
     email: row.email,
     whatsapp: row.whatsapp ?? "",
+    customFields: row.custom_fields ?? {},
   };
 }
