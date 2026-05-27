@@ -45,7 +45,44 @@ describe("renderSignatureDocument", () => {
     expect(html).toContain("Jane Safari");
     expect(html).toContain("Lead Guide");
     expect(html).toContain("mailto:jane@c4photosafaris.com");
+    expect(html).toContain("www.c4photosafaris.com");
     expect(html).toContain("mso-table-lspace:0pt");
+  });
+
+  it("renders up to three footer websites separated by dividers in lowercase", () => {
+    const fields = contentToFieldValues({
+      ...SAMPLE,
+      footerLinks: ["HTTPS://ONE.COM", "Two.com", "https://THREE.COM/Path"],
+    });
+    const document = buildDocumentFromTemplate({
+      templateId: "footer-triple",
+      template: {
+        id: "footer-triple",
+        name: "Footer triple",
+        description: "",
+        category: "Corporate",
+        canvasWidth: 500,
+        layoutStyle: "compact-stack",
+        blocks: [{ id: "footer", type: "footer_link", label: "", url: "" }],
+      },
+      fields,
+      theme: {
+        primaryColor: DEFAULT_ORG_BRAND.primaryColor,
+        accentColor: DEFAULT_ORG_BRAND.accentColor,
+        textColor: DEFAULT_ORG_BRAND.textColor,
+        mutedColor: DEFAULT_ORG_BRAND.mutedColor,
+        borderColor: DEFAULT_ORG_BRAND.borderColor,
+      },
+      assetsBaseUrl: SAMPLE.assetsBaseUrl,
+      orgLogoUrl: "",
+    });
+    const html = normalizeHtml(
+      renderSignatureDocument({ document, fields, assetsBaseUrl: SAMPLE.assetsBaseUrl, orgLogoUrl: "" }),
+    );
+    expect(html).toContain("one.com");
+    expect(html).toContain("two.com");
+    expect(html).toContain("three.com/path");
+    expect(html).toContain("|");
   });
 
   it("produces distinct HTML per platform profile", () => {

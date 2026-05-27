@@ -18,8 +18,7 @@ export function contentToFieldValues(input: SignatureFormState & OrgBrand): Sign
     email: input.email,
     whatsapp: input.whatsapp,
     companyName: input.companyName,
-    footerDisplay: input.footerDisplay,
-    footerUrl: input.footerUrl,
+    footerLinks: input.footerLinks,
   };
 }
 

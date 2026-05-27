@@ -27,6 +27,8 @@ export const getOrganizationSettings = cache(async (): Promise<OrganizationSetti
       id,
       company_name,
       footer_url,
+      footer_url_2,
+      footer_url_3,
       logo_url,
       primary_color,
       accent_color,

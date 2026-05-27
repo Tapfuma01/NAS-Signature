@@ -18,6 +18,8 @@ const targetPlatformSchema = z.enum(
 const orgSettingsInput = z.object({
   companyName: z.string().min(1).max(200),
   footerUrl: z.string().min(1).max(500),
+  footerUrl2: z.string().max(500).optional().default(""),
+  footerUrl3: z.string().max(500).optional().default(""),
   logoUrl: z.string().max(2000).optional().default(""),
   primaryColor: hexColor,
   accentColor: hexColor,
@@ -48,6 +50,8 @@ export async function updateOrganizationSettings(
       SET
         company_name = ${v.companyName},
         footer_url = ${v.footerUrl},
+        footer_url_2 = ${v.footerUrl2},
+        footer_url_3 = ${v.footerUrl3},
         logo_url = ${v.logoUrl ?? ""},
         primary_color = ${v.primaryColor},
         accent_color = ${v.accentColor},

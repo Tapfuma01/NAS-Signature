@@ -43,6 +43,8 @@ export function OrganizationSettingsForm({
   const [orgForm, setOrgForm] = useState({
     companyName: organizationSettings.company_name,
     footerUrl: organizationSettings.footer_url,
+    footerUrl2: organizationSettings.footer_url_2,
+    footerUrl3: organizationSettings.footer_url_3,
     logoUrl: organizationSettings.logo_url,
     primaryColor: organizationSettings.primary_color,
     accentColor: organizationSettings.accent_color,
@@ -59,6 +61,8 @@ export function OrganizationSettingsForm({
       const res = await updateOrganizationSettings({
         companyName: orgForm.companyName,
         footerUrl: orgForm.footerUrl,
+        footerUrl2: orgForm.footerUrl2,
+        footerUrl3: orgForm.footerUrl3,
         logoUrl: orgForm.logoUrl,
         primaryColor: orgForm.primaryColor,
         accentColor: orgForm.accentColor,
@@ -118,6 +122,26 @@ export function OrganizationSettingsForm({
                       value={orgForm.footerUrl}
                       onChange={(e) => setOrgForm((s) => ({ ...s, footerUrl: e.target.value }))}
                       required
+                      disabled={readOnly || pending}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="footerUrl2">Website / footer URL 2 (optional)</Label>
+                    <Input
+                      id="footerUrl2"
+                      type="url"
+                      value={orgForm.footerUrl2}
+                      onChange={(e) => setOrgForm((s) => ({ ...s, footerUrl2: e.target.value }))}
+                      disabled={readOnly || pending}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="footerUrl3">Website / footer URL 3 (optional)</Label>
+                    <Input
+                      id="footerUrl3"
+                      type="url"
+                      value={orgForm.footerUrl3}
+                      onChange={(e) => setOrgForm((s) => ({ ...s, footerUrl3: e.target.value }))}
                       disabled={readOnly || pending}
                     />
                   </div>

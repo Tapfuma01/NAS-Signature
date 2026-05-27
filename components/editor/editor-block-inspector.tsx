@@ -302,20 +302,11 @@ export function EditorBlockInspector({
       {block.type === "footer_link" && (
         <>
           <div className="grid gap-2">
-            <Label>Label</Label>
-            <Input
-              value={block.label}
-              onChange={(e) => onUpdate(id, { label: e.target.value })}
-              disabled={disabled}
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label>URL</Label>
-            <Input
-              value={block.url}
-              onChange={(e) => onUpdate(id, { url: e.target.value })}
-              disabled={disabled}
-            />
+            <Label>Footer websites</Label>
+            <p className="text-muted-foreground text-sm">
+              Footer websites come from Organization settings. Add up to three URLs there to show them
+              with dividers in the signature.
+            </p>
           </div>
         </>
       )}

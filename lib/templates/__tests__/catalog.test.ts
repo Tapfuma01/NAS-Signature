@@ -10,8 +10,7 @@ const FIELDS = {
   email: "alex@example.com",
   whatsapp: "+27 82 000 0000",
   companyName: "C4 Photo Safaris",
-  footerDisplay: "www.c4photosafaris.com",
-  footerUrl: "https://www.c4photosafaris.com",
+  footerLinks: ["www.c4photosafaris.com"],
 };
 
 describe("template catalog", () => {

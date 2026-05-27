@@ -288,8 +288,6 @@ export function renderFooterRow(
 ): string {
   const { profile, theme, layout } = ctx;
   const blockStyle = getBlockStyle(block);
-  const safeFooterHref = escapeHtml(block.url);
-  const safeFooterLabel = escapeHtml(block.label.trim() || block.url);
   const linkColor = escapeHtml(blockStyle?.color ?? theme.mutedColor);
   const isC4 = layout.footerMode === "c4-uppercase";
   const typography = isC4
@@ -304,8 +302,32 @@ export function renderFooterRow(
   );
   const linkStyle = `color:${linkColor};text-decoration:none;`;
 
+  const displayText = (raw: string) =>
+    raw
+      .trim()
+      .toLowerCase()
+      .replace(/^https?:\/\//i, "")
+      .replace(/\/$/, "");
+
+  const urls = (block.urls && block.urls.length > 0 ? block.urls : [block.label || block.url])
+    .map((v) => (v ?? "").trim())
+    .filter(Boolean)
+    .slice(0, 3);
+
+  const separator = `<span style="color:${escapeHtml(theme.mutedColor)};padding:0 8px;">|</span>`;
+  const linksHtml =
+    urls.length > 0
+      ? urls
+          .map((raw) => {
+            const href = escapeHtml(raw);
+            const display = escapeHtml(displayText(raw));
+            return `<a href="${href}" style="${linkStyle}">${display}</a>`;
+          })
+          .join(separator)
+      : "";
+
   const inner = `<tr><td style="${cellStyle}">
-        <a href="${safeFooterHref}" style="${linkStyle}">${safeFooterLabel}</a>
+        ${linksHtml}
       </td></tr>`;
   return wrapRowWithBlockMargin(inner, blockStyle);
 }

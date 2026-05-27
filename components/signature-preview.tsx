@@ -14,9 +14,22 @@ function line(text: string, placeholder: string, activeColor: string, mutedColor
   return <span style={{ color: show ? activeColor : mutedColor }}>{show ? text : placeholder}</span>;
 }
 
+function footerDisplayText(raw: string): string {
+  return raw
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//i, "")
+    .replace(/\/$/, "");
+}
+
+function footerHref(raw: string): string {
+  const trimmed = raw.trim();
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+}
+
 export function SignaturePreview({ org, value }: Props) {
   const { fullName, jobTitle, phone, email, whatsapp } = value;
-  const { companyName, footerDisplay, accentColor, textColor, mutedColor, borderColor, primaryColor, footerUrl } = org;
+  const { companyName, footerLinks, accentColor, textColor, mutedColor, borderColor, primaryColor } = org;
 
   return (
     <div
@@ -57,14 +70,25 @@ export function SignaturePreview({ org, value }: Props) {
           <span>{line(whatsapp, "WhatsApp link or number", textColor, mutedColor)}</span>
         </li>
       </ul>
-      <p
-        className="mt-6 border-t pt-4 text-xs uppercase tracking-[0.15em]"
-        style={{ borderColor, color: mutedColor }}
-      >
-        <a href={footerUrl} className="underline-offset-2 hover:underline" style={{ color: mutedColor }}>
-          {footerDisplay.trim() || footerUrl}
-        </a>
-      </p>
+      {footerLinks.length > 0 ? (
+        <p
+          className="mt-6 border-t pt-4 text-xs tracking-[0.15em]"
+          style={{ borderColor, color: mutedColor }}
+        >
+          {footerLinks.map((link, i) => (
+            <span key={link}>
+              {i > 0 ? <span className="px-2 opacity-60">|</span> : null}
+              <a
+                href={footerHref(link)}
+                className="underline-offset-2 hover:underline"
+                style={{ color: mutedColor }}
+              >
+                {footerDisplayText(link)}
+              </a>
+            </span>
+          ))}
+        </p>
+      ) : null}
     </div>
   );
 }

@@ -71,10 +71,12 @@ export function hydrateTemplateBlocks(
         }
         return { ...block, text: fields.jobTitle.trim() || "Your role" };
       case "footer_link":
+        const firstFooter = fields.footerLinks[0] ?? "";
         return {
           ...block,
-          label: fields.footerDisplay.trim() || fields.footerUrl,
-          url: fields.footerUrl,
+          urls: fields.footerLinks,
+          label: firstFooter,
+          url: firstFooter,
         };
       case "social":
         return {
@@ -83,7 +85,7 @@ export function hydrateTemplateBlocks(
             ...item,
             url:
               i === 0 && !item.url.trim()
-                ? fields.footerUrl
+                ? (fields.footerLinks[0] ?? "")
                 : item.url,
           })),
         };
@@ -149,7 +151,6 @@ export function fieldsFromOrgAndForm(
     email: form.email,
     whatsapp: form.whatsapp,
     companyName: org.companyName,
-    footerDisplay: org.footerDisplay,
-    footerUrl: org.footerUrl,
+    footerLinks: org.footerLinks,
   };
 }

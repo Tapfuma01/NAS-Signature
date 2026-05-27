@@ -2,10 +2,8 @@ import type { OrganizationSettings } from "@/types/organization-settings";
 
 export type OrgBrand = {
   companyName: string;
-  /** Short label for footer (e.g. www.example.com). */
-  footerDisplay: string;
-  /** Full website URL for links. */
-  footerUrl: string;
+  /** One to three website strings (as entered) for the footer. */
+  footerLinks: string[];
   logoUrl: string;
   primaryColor: string;
   accentColor: string;
@@ -16,8 +14,7 @@ export type OrgBrand = {
 
 export const DEFAULT_ORG_BRAND: OrgBrand = {
   companyName: "C4 Photo Safaris",
-  footerDisplay: "www.c4photosafaris.com",
-  footerUrl: "https://www.c4photosafaris.com",
+  footerLinks: ["https://www.c4photosafaris.com"],
   logoUrl: "",
   primaryColor: "#C69C6D",
   accentColor: "#C69C6D",
@@ -26,16 +23,13 @@ export const DEFAULT_ORG_BRAND: OrgBrand = {
   borderColor: "#e8ddd0",
 };
 
-function stripProtocol(url: string): string {
-  return url.replace(/^https?:\/\//i, "").replace(/\/$/, "");
-}
-
 export function organizationRowToOrgBrand(row: OrganizationSettings): OrgBrand {
-  const footer = row.footer_url.trim() || DEFAULT_ORG_BRAND.footerUrl;
+  const links = [row.footer_url, row.footer_url_2, row.footer_url_3]
+    .map((v) => (v ?? "").trim())
+    .filter(Boolean);
   return {
     companyName: row.company_name,
-    footerDisplay: stripProtocol(footer),
-    footerUrl: footer.startsWith("http") ? footer : `https://${footer}`,
+    footerLinks: links.length > 0 ? links : DEFAULT_ORG_BRAND.footerLinks,
     logoUrl: row.logo_url.trim(),
     primaryColor: row.primary_color,
     accentColor: row.accent_color,

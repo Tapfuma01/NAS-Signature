@@ -56,8 +56,7 @@ function SignatureHtmlPreviewInner({
       email: member.email,
       whatsapp: member.whatsapp,
       companyName: org.companyName,
-      footerDisplay: org.footerDisplay,
-      footerUrl: org.footerUrl,
+      footerLinks: org.footerLinks,
     };
     return renderSignatureDocument({
       document,

@@ -15,8 +15,7 @@ const SAMPLE_FIELDS = {
   email: "jane@c4photosafaris.com",
   whatsapp: "+27 82 123 4567",
   companyName: DEFAULT_ORG_BRAND.companyName,
-  footerDisplay: DEFAULT_ORG_BRAND.footerDisplay,
-  footerUrl: DEFAULT_ORG_BRAND.footerUrl,
+  footerLinks: DEFAULT_ORG_BRAND.footerLinks,
 };
 
 type Props = {

@@ -53,7 +53,7 @@ export type SignatureBlock =
       width?: "full" | "short" | number;
     })
   | (BlockBase & { type: "social"; items: { network: string; url: string }[] })
-  | (BlockBase & { type: "footer_link"; label: string; url: string })
+  | (BlockBase & { type: "footer_link"; label: string; url: string; urls?: string[] })
   | (BlockBase & { type: "spacer"; height: number })
   | (BlockBase & {
       type: "banner";
@@ -81,8 +81,7 @@ export type SignatureFieldValues = {
   email: string;
   whatsapp: string;
   companyName: string;
-  footerDisplay: string;
-  footerUrl: string;
+  footerLinks: string[];
 };
 
 export type RenderSignatureOptions = {

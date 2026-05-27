@@ -32,7 +32,26 @@ export function buildPlainTextFromDocument(
         break;
       }
       case "footer_link":
-        lines.push(block.label.trim() || block.url);
+        if (block.urls && block.urls.length > 0) {
+          const joined = block.urls
+            .map((v) => (v ?? "").trim())
+            .filter(Boolean)
+            .slice(0, 3)
+            .map((v) =>
+              v
+                .toLowerCase()
+                .replace(/^https?:\/\//i, "")
+                .replace(/\/$/, ""),
+            )
+            .join(" | ");
+          if (joined) lines.push(joined);
+        } else {
+          const single = (block.label.trim() || block.url)
+            .toLowerCase()
+            .replace(/^https?:\/\//i, "")
+            .replace(/\/$/, "");
+          if (single) lines.push(single);
+        }
         break;
       case "disclaimer":
         if (block.text.trim()) lines.push(block.text.trim());

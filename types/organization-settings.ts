@@ -4,6 +4,8 @@ export type OrganizationSettings = {
   id: number;
   company_name: string;
   footer_url: string;
+  footer_url_2: string;
+  footer_url_3: string;
   logo_url: string;
   primary_color: string;
   accent_color: string;
